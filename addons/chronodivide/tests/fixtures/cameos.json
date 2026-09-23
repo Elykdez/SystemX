@@ -1,0 +1,122 @@
+{
+ "14": [
+  "tesla_reactor",
+  "available"
+ ],
+ "18": [
+  "tesla_reactor",
+  "disabled"
+ ],
+ "13": [
+  "tesla_reactor",
+  "ready"
+ ],
+ "1": [
+  "tesla_reactor",
+  "building"
+ ],
+ "4": [
+  "tesla_reactor",
+  "building"
+ ],
+ "7": [
+  "tesla_reactor",
+  "building"
+ ],
+ "11": [
+  "tesla_reactor",
+  "building"
+ ],
+ "30": [
+  "barracks",
+  "ready"
+ ],
+ "24": [
+  "barracks",
+  "building"
+ ],
+ "57": [
+  "war_factory",
+  "available"
+ ],
+ "95": [
+  "war_factory",
+  "disabled"
+ ],
+ "74": [
+  "war_factory",
+  "ready"
+ ],
+ "34": [
+  "conscript",
+  "available"
+ ],
+ "70": [
+  "conscript",
+  "building"
+ ],
+ "77": [
+  "sentry_gun",
+  "available"
+ ],
+ "17": [
+  null,
+  "empty"
+ ],
+ "8": [
+  null,
+  "unknown"
+ ],
+ "108": [
+  null,
+  "unknown"
+ ],
+ "58": [
+  "radar_tower",
+  "available"
+ ],
+ "15": [
+  "ore_refinery",
+  "available"
+ ],
+ "v116": [
+  "war_miner",
+  "available"
+ ],
+ "v117": [
+  "rhino_tank",
+  "available"
+ ],
+ "v118": [
+  "flak_track",
+  "available"
+ ],
+ "v119": [
+  "terror_drone",
+  "available"
+ ],
+ "v131": [
+  "rhino_tank",
+  "building"
+ ],
+ "v140": [
+  "war_miner",
+  "building"
+ ],
+ "c_war_factory": [
+  "war_factory",
+  "available"
+ ],
+ "c_naval_shipyard": [
+  "naval_shipyard",
+  "available"
+ ],
+ "c_conscript": [
+  "conscript",
+  "available"
+ ],
+ "c_engineer": [
+  "engineer",
+  "available"
+ ]
+}

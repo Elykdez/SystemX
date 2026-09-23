@@ -7,18 +7,18 @@ import model_download
 
 @pytest.fixture
 def cache(tmp_path, monkeypatch):
-    monkeypatch.setenv("VON_MODEL_CACHE", str(tmp_path))
+    monkeypatch.setenv("SYSTEMX_MODEL_CACHE", str(tmp_path))
     monkeypatch.setenv("HF_HOME", str(tmp_path))
     monkeypatch.delenv("HF_HUB_CACHE", raising=False)
     monkeypatch.delenv("HUGGINGFACE_HUB_CACHE", raising=False)
-    monkeypatch.setattr(model_download, "CHECKPOINT_BYTES", 4)
+    monkeypatch.setattr(model_download, "WEIGHT_FILES", {name: 4 for name in model_download.WEIGHT_FILES})
     return model_download.snapshot_directory()
 
 
 def create_snapshot(directory):
     directory.mkdir(parents=True, exist_ok=True)
     for name in model_download.FILES:
-        (directory / name).write_bytes(b"test" if name == "option_marker.pt" else b"{}")
+        (directory / name).write_bytes(b"test" if name in model_download.WEIGHT_FILES else b"{}")
 
 
 def events(capsys):
@@ -60,9 +60,9 @@ def test_incomplete_cache_is_not_ready(cache, damage):
     elif damage == "bad_json":
         (cache / "tokenizer.json").write_text("{")
     elif damage == "short_checkpoint":
-        (cache / "option_marker.pt").write_bytes(b"x")
+        (cache / "model-00001-of-00002.safetensors").write_bytes(b"x")
     else:
-        (cache / "option_marker.pt").rename(cache / "option_marker.pt.incomplete")
+        (cache / "model-00001-of-00002.safetensors").rename(cache / "model-00001-of-00002.safetensors.incomplete")
     assert not model_download.snapshot_ready(cache)
 
 

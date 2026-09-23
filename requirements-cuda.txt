@@ -1,0 +1,5 @@
+# PyTorch 2.9 uses Triton 3.5. Linux gets its Triton pin from PyTorch.
+triton-windows==3.5.1.post24; sys_platform == 'win32'
+fla-core==0.5.2
+einops==0.8.2
+bitsandbytes==0.50.2

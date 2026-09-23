@@ -1,7 +1,9 @@
+
+from model_config import MODEL_NAME
 import httpx
 import pytest
 
-from addons.minesweeper.decision import VonDecision
+from addons.minesweeper.decision import SystemOneDecision
 
 
 @pytest.fixture
@@ -13,11 +15,11 @@ def clock(monkeypatch):
 
 
 def make_client(handler):
-    return VonDecision(client=httpx.Client(base_url="http://test", transport=httpx.MockTransport(handler)))
+    return SystemOneDecision(client=httpx.Client(base_url="http://test", transport=httpx.MockTransport(handler)))
 
 
 def health(state):
-    return httpx.Response(200, json={"model": "von-option-marker", "status": state, "ready": state == "ready"})
+    return httpx.Response(200, json={"model": MODEL_NAME, "status": state, "ready": state == "ready"})
 
 
 def test_connection_startup_loading_and_ready_have_visible_progress(clock):
@@ -33,7 +35,7 @@ def test_connection_startup_loading_and_ready_have_visible_progress(clock):
     brain.wait_ready(progress=messages.append)
     assert "Waiting for server" in messages[0]
     assert "Loading AI model" in messages[1]
-    assert "Von ready" in messages[2]
+    assert "System One ready" in messages[2]
     assert clock[0] == 4
     brain.close()
 
@@ -64,7 +66,7 @@ def test_initialization_failure_is_reported_immediately(clock):
 
 def test_wrong_service_is_not_mistaken_for_ready(clock):
     brain = make_client(lambda request: httpx.Response(200, json={"ready": True, "status": "ready"}))
-    with pytest.raises(RuntimeError, match="expected Von server"):
+    with pytest.raises(RuntimeError, match="expected System One server"):
         brain.wait_ready()
     brain.close()
 

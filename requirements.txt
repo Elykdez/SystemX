@@ -1,10 +1,9 @@
-von-sdk @ git+https://github.com/wfzyx/von.git@2656a69be2ef0ebf2f3058302e52791f99cbd8de
-transformers==4.57.3
+startlux-decide[transformers] @ git+https://github.com/StartLuxLabs/StartLux-Decision.git@cb1d11f1ac9e9b43b95ef3a6468fa29b607c40fd
+transformers==5.8.1
+torchvision==0.24.0
 accelerate==1.12.0
 fastapi==0.128.0
 pydantic==2.12.5
 uvicorn==0.40.0
 httpx==0.28.1
-huggingface-hub==0.36.0
-hf-xet==1.2.0
 pytest==9.0.2

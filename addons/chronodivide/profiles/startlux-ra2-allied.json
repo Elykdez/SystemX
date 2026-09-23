@@ -1,0 +1,1037 @@
+{
+  "version": 1,
+  "name": "StartLux RA2 Allied",
+  "faction": "allied",
+  "decision_checks": "decision-checks-allied.json",
+  "about": "Screenshot-only Allied faction policy for any Allied country and hostile faction, in solo or team matches. Protect a two-refinery economy with Grizzlies and IFVs, then fund Battle Lab technology. Mirage tanks screen Prism siege support. Only consider an optional Grand Cannon when its sidebar icon is available; skip it for countries that cannot build it. Ignore friendly players in combat, finish hostile bases one at a time, and consider construction near a revealed ally only when our base is established and safe. Sidebar availability is authoritative; production counts are cumulative, not survivors.",
+  "systemone": {
+    "strategy_every": 15.0,
+    "urgent": {
+      "threat_within": 2.0,
+      "gap": 3.0
+    },
+    "deadlines": {
+      "strategy": 1.5,
+      "urgent": 0.6,
+      "production": 0.8,
+      "focus": 8.0
+    },
+    "memo_seconds": 2.0
+  },
+  "questions": {
+    "prism_battle": {
+      "type": "choice",
+      "instructions": "Choose the next Allied formation action from the current visual evidence. Prisms are long-range siege units, not assault tanks. Mirage, Grizzly and IFV escorts guard near them; escorts engage only close attackers, and advance only after nearby threats are cleared. Never send the entire mixed army onto a building.",
+      "facts": ["prisms", "safety", "target", "screen", "cover"],
+      "options": {
+        "hold": "No verified Prism selection or escort is visible, neither a building target nor a known enemy-base route is available, or a distant target or route still has nearby threats.",
+        "bombard": "A native Prism type selection is verified, no close attacker or damaged Prism was observed, a visible building lies within firing distance, and a verified escort vehicle is visible.",
+        "reposition": "An enemy is close to the Prisms or a Prism has low or unreadable health.",
+        "advance": "Verified Prisms and an escort are visible. No damaged Prism or close attacker was observed, and repeated views show no nearby enemies. A distant visible building or known enemy-base route supplies a direction for a short advance. Movement toward a remembered base does not authorize firing."
+      },
+      "rules": [
+        {"choose": "reposition", "when": {"safety": "danger"}},
+        {"choose": "bombard", "when": {"prisms": "present", "target": "in_range"}},
+        {"choose": "advance", "when": {"prisms": "present", "target": ["distant", "route"], "screen": "clear"}},
+        {"choose": "hold"}
+      ]
+    },
+    "placement": {
+      "type": "choice",
+      "instructions": "Where does this finished support building belong?",
+      "facts": ["site"],
+      "options": {
+        "home": "Our base needs the building, is threatened, or no safe allied construction site is available.",
+        "ally_base": "Our base is established, powered, covered and quiet. Funds for two tanks remain. A safe teammate base is revealed and Build off Ally is enabled; try support construction there."
+      },
+      "rules": [{"choose": "ally_base", "when": {"site": "ally_available"}}, {"choose": "home"}]
+    },
+    "focus": {
+      "type": "choice",
+      "instructions": "What should our army focus on now? Compare the army and attack facts with each option; the enemy base is destroyed only by attacking it.",
+      "facts": ["army", "attack", "base_threat"],
+      "options": {
+        "defend": "Inspect the current raid near our base and keep the camera on the fight, including enemies outside the home view. Use defenders while dogs guard home. Right only when enemy units are near our base right now.",
+        "attack": "The attack size is reached, or an attack is under way. Prepare a ranged siege: first verify native Prism and Mirage/IFV groups, then keep escorts nearby and attack buildings with Prisms. Continue reinforcing an ongoing siege. Escorts engage only close threats or after threats clear.",
+        "build": "Keep the army at home, guarding the base, while it grows. Right while the attack size is not reached and no attack is under way."
+      },
+      "rules": [
+        {"choose": "defend", "when": {"situation": "defend"}},
+        {"choose": "attack", "when": {"situation": "attack"}},
+        {"choose": "build"}
+      ]
+    },
+    "objective": {
+      "type": "choice",
+      "instructions": "Which description matches our economy right now?",
+      "facts": [
+        "economy",
+        "money",
+        "army",
+        "base_threat"
+      ],
+      "options": {
+        "expand_economy": "Too few miners, or only one refinery.",
+        "build_army": "Enough miners and refineries, and credits are being spent.",
+        "tech_up": "Enough miners and refineries, and credits pile up unused."
+      },
+      "rules": [
+        {
+          "choose": "expand_economy",
+          "when": {
+            "economy": [
+              "no_refinery",
+              "one_refinery",
+              "few_miners"
+            ]
+          }
+        },
+        {
+          "choose": "tech_up",
+          "when": {
+            "money": "pile_up"
+          }
+        },
+        {
+          "choose": "build_army"
+        }
+      ]
+    },
+    "posture": {
+      "type": "choice",
+      "instructions": "What should our army do now? Compare the army and attack facts with each option; the enemy base is destroyed only by attacking it.",
+      "facts": [
+        "army",
+        "attack",
+        "base_threat"
+      ],
+      "options": {
+        "gather": "Keep the army at home, guarding the base, while it grows. Right while the attack size is not reached and no attack is under way.",
+        "attack": "The attack size is reached, or an attack is under way. Prepare a ranged siege: first verify native Prism and Mirage/IFV groups, then keep escorts nearby and attack buildings with Prisms. Continue reinforcing an ongoing siege. Escorts engage only close threats or after threats clear.",
+        "defend": "Bring the whole army home to fight the enemies attacking our base. Right only when enemy units are near our base right now."
+      },
+      "rules": [
+        {
+          "choose": "defend",
+          "when": {
+            "base_threat": "now",
+            "posture": [
+              "gather",
+              "defend"
+            ]
+          }
+        },
+        {
+          "choose": "defend",
+          "when": {
+            "base_threat": "now",
+            "raid": "big"
+          }
+        },
+        {
+          "choose": "attack"
+        },
+        {
+          "choose": "gather"
+        }
+      ]
+    },
+    "attack_size": {
+      "type": "choice",
+      "instructions": "How many combat vehicles should gather before the Allied attack? Prism tanks bombard static defenses at range while Mirage and IFV escorts protect them. A dense stationary base alone does not require the largest force; failed attacks justify a larger force.",
+      "facts": [
+        "game_time",
+        "failed_attacks",
+        "enemy_defenses",
+        "reinforcements"
+      ],
+      "options": {
+        "small": {
+          "tanks": 6,
+          "words": "Late game, the enemy defenses were observed weak, and no attack failed yet."
+        },
+        "medium": {
+          "tanks": 8,
+          "words": "Early game, no attack failed yet, and the enemy defenses are weak."
+        },
+        "large": {
+          "tanks": 12,
+          "words": "No attack failed yet, and either enemy defenses are unknown, medium or strong, or reinforcements have stalled with a fresh army of at least 12 vehicles."
+        },
+        "larger": {
+          "tanks": 20,
+          "words": "One failed attack."
+        },
+        "largest": {
+          "tanks": 24,
+          "words": "Multiple failed attacks."
+        }
+      },
+      "rules": [
+        {
+          "choose": "largest",
+          "when": {
+            "failed_attacks": "more"
+          }
+        },
+        {
+          "choose": "larger",
+          "when": {
+            "failed_attacks": "one"
+          }
+        },
+        {
+          "choose": "large",
+          "when": {
+            "reinforcements": "stalled",
+            "failed_attacks": "none"
+          }
+        },
+        {
+          "choose": "small",
+          "when": {
+            "game_time": "late",
+            "enemy_defenses": "weak",
+            "failed_attacks": "none"
+          }
+        },
+        {
+          "choose": "medium",
+          "when": {
+            "enemy_defenses": "weak"
+          }
+        },
+        {
+          "choose": "large"
+        }
+      ]
+    },
+    "intel": {
+      "type": "choice",
+      "instructions": "Which description matches our knowledge of the battlefield?",
+      "facts": [
+        "enemy_base",
+        "scout",
+        "attack",
+        "surroundings"
+      ],
+      "options": {
+        "explore": "Dog scouts are ready, and the ground around our base was not explored yet.",
+        "scout": "The enemy base is not found yet, and no scout is on the way.",
+        "look_enemy_base": "The enemy base is found, but it was not looked at recently.",
+        "look_at_army": "Our attack is under way, but the fight was not looked at recently.",
+        "nothing": "Everything important was looked at recently, or a scout is on the way."
+      },
+      "rules": [
+        {
+          "choose": "explore"
+        },
+        {
+          "choose": "scout"
+        },
+        {
+          "choose": "look_at_army"
+        },
+        {
+          "choose": "look_enemy_base"
+        },
+        {
+          "choose": "nothing"
+        }
+      ]
+    },
+    "resources": {
+      "type": "choice",
+      "instructions": "Which option matches the current resource facts?",
+      "facts": [
+        "home_ore",
+        "money",
+        "gem_field",
+        "miner_team",
+        "income",
+        "base_threat"
+      ],
+      "options": {
+        "keep_home": "Income is progressing, cash is sufficient, or the base is threatened. Continue the current mining orders.",
+        "harvest_home_ore": "Income is stalled. Cash is low, home ore is plentiful, a Chrono Miner team is saved, and the base is quiet. Restart harvesting the visible home ore.",
+        "survey_gems": "Home ore is scarce, cash is low, no recent field is confirmed, a Chrono Miner is saved, and the base is quiet. Look for resources.",
+        "harvest_gems": "Home ore is scarce, cash is low, a recent ore or gem field is confirmed, a Chrono Miner is saved, and the base is quiet. Harvest that field."
+      },
+      "rules": [
+        {
+          "choose": "harvest_home_ore",
+          "when": {
+            "home_ore": "present",
+            "income": "stalled",
+            "money": "low",
+            "miner_team": "saved",
+            "base_threat": "quiet"
+          }
+        },
+        {
+          "choose": "harvest_gems",
+          "when": {
+            "home_ore": "thin",
+            "money": "low",
+            "gem_field": "recent",
+            "miner_team": "saved",
+            "base_threat": "quiet"
+          }
+        },
+        {
+          "choose": "survey_gems",
+          "when": {
+            "home_ore": "thin",
+            "money": "low",
+            "gem_field": [
+              "unknown",
+              "stale"
+            ],
+            "miner_team": "saved",
+            "base_threat": "quiet"
+          }
+        },
+        {
+          "choose": "keep_home"
+        }
+      ]
+    },
+    "production": {
+      "type": "choice",
+      "instructions": "Which description matches the needs?",
+      "facts": [
+        "lane",
+        "needs"
+      ],
+      "options": {
+        "attack_dog": "The needs include dog scouts.",
+        "chrono_miner": "The needs include too few miners.",
+        "ifv": "The needs include anti-air support.",
+        "rocketeer": "The needs include credits to spare.",
+        "prism_tank": "The needs include long-range siege support.",
+        "mirage_tank": "The needs include credits to spare.",
+        "grizzly_tank": "No other need applies: the default tank.",
+        "gi": "The needs include cheap infantry.",
+        "pillbox": "The needs include basic base cover.",
+        "grand_cannon": "The needs include optional heavy cannon base cover.",
+        "spy_satellite": "The needs include map reconnaissance to locate the enemy base and distant attackers."
+      },
+      "rules_about": "No rules: the default is the first option the playbook offers (its units section lists them by need).",
+      "rules": [
+        {
+          "choose": "chrono_miner"
+        },
+        {
+          "choose": "ifv"
+        },
+        {
+          "choose": "prism_tank"
+        },
+        {
+          "choose": "mirage_tank"
+        },
+        {
+          "choose": "grizzly_tank"
+        },
+        {
+          "choose": "attack_dog"
+        },
+        {
+          "choose": "gi"
+        },
+        {
+          "choose": "pillbox"
+        },
+        {
+          "choose": "grand_cannon"
+        }
+      ]
+    }
+  },
+  "facts": {
+    "prism_battle": {
+      "prisms": {"present": "A native Prism type selection is verified and its vehicles are visible.", "missing": "No verified Prism selection is visible. Mixed-unit guesses do not identify Prisms."},
+      "safety": {"danger": "An enemy is close to the Prisms or a Prism has low or unreadable health.", "safe": "No close attacker or damaged Prism was observed in this view."},
+      "target": {"in_range": "A visible building lies within the conservative Prism firing distance.", "distant": "A visible building lies outside the conservative Prism firing distance.", "route": "No visible building is verified, but current radar still confirms the remembered enemy-base destination. It supplies a movement direction only.", "missing": "Neither a visible building target nor a confirmed enemy-base route is available."},
+      "screen": {"clear": "Repeated views confirm that the measured next step stays outside close threats. A short advance can be considered.", "unconfirmed": "The next step is unsafe, or its clearance has not been confirmed in repeated views."},
+      "cover": {"present": "At least one verified escort vehicle is visible in the current battle view.", "missing": "No verified escort vehicle is visible in the current battle view."}
+    },
+    "placement": {"site": {"ally_available": "Our base is established, powered, covered and quiet. Funds for two tanks remain. A safe teammate base is revealed and Build off Ally is enabled."}},
+    "strategy": {
+      "economy": {
+        "no_refinery": "no refinery yet",
+        "one_refinery": "only one refinery",
+        "few_miners": "too few miners",
+        "enough": "enough miners and refineries"
+      },
+      "money": {
+        "unknown": "unknown",
+        "text": "{credits} credits: {level}",
+        "levels": [
+          {
+            "name": "pile_up",
+            "at_least": 5000,
+            "words": "credits pile up unused"
+          },
+          {
+            "name": "spent",
+            "at_least": 600,
+            "words": "credits are being spent"
+          },
+          {
+            "name": "run_out",
+            "words": "credits run out"
+          }
+        ]
+      },
+      "army": {
+        "text": "{available} combat units ready at home; attack size {size}: {status}",
+        "reached": "attack size reached",
+        "missing": "attack size not reached ({missing} more)"
+      },
+      "attack": {
+        "not_started": "not started",
+        "under_way": "under way for {seconds} s: {waves} waves sent, last {last} s ago, attacking {target}",
+        "targets": {
+          "enemy": "enemy objects seen on the radar",
+          "guess": "the likely enemy start position",
+          "search": "shrouded areas (enemy not found yet)",
+          "none": "no target"
+        }
+      },
+      "base_threat": {
+        "unknown": "none seen",
+        "levels": [
+          {
+            "name": "now",
+            "within": 10,
+            "words": "enemy units near our base right now"
+          },
+          {
+            "name": "recent",
+            "within": 60,
+            "words": "enemy units were near our base {age} s ago"
+          },
+          {
+            "name": "none",
+            "words": "none seen in the last minute"
+          }
+        ]
+      }
+    },
+    "attack_size": {
+      "game_time": {
+        "early": "early game ({minutes} minutes played)",
+        "late": "late game ({minutes} minutes played); enemy strength depends on observation"
+      },
+      "failed_attacks": {
+        "none": "none: no attack failed yet",
+        "one": "exactly one attack failed: our army was destroyed",
+        "more": "two or more attacks failed ({count}): our army was destroyed each time"
+      },
+      "enemy_defenses": {
+        "unknown": "unknown (the enemy base was not looked at yet)",
+        "weak": "weak",
+        "medium": "medium",
+        "strong": "strong"
+      },
+      "reinforcements": {
+        "stalled": "Cash is low and cash and production have stopped advancing for at least 90 seconds; a fresh census confirms at least 12 vehicles at home. Waiting for more vehicles may never finish.",
+        "not_limited": "A reinforcement stall with a fresh army of at least 12 vehicles is not confirmed."
+      }
+    },
+    "intel": {
+      "enemy_base": {
+        "not_found": "not found yet",
+        "recent": "found; looked at recently ({age} s ago{defenses})",
+        "stale": "found; not looked at recently",
+        "stale_seen": "found; not looked at recently ({age} s ago{defenses})",
+        "defenses": ", {strength} defenses"
+      },
+      "scout": {
+        "out": "a scout is on the way (sent {age} s ago)",
+        "none": "no scout is on the way"
+      },
+      "surroundings": {
+        "unexplored": "the ground around our base was not explored yet; dog scouts are ready",
+        "no_scouts": "the ground around our base was not explored yet; no dog scouts",
+        "explored": "the ground around our base was explored"
+      },
+      "attack": {
+        "not_started": "not started",
+        "recent": "under way; the fight was looked at recently",
+        "stale": "under way; the fight was not looked at recently",
+        "detail": " ({age} s ago: {own} of our objects, {enemy} enemy objects)"
+      }
+    },
+    "production": {
+      "needs": {
+        "scouts": "dog scouts ({dogs} of {count})",
+        "saving_refinery": "the second refinery (saving for it)",
+        "miners": "too few miners ({miners} of {wanted})",
+        "spare_credits": "credits to spare ({credits})",
+        "anti_air": "anti-air support ({flak} IFVs for {tanks} tanks)",
+        "anti_air_infantry": "anti-air infantry support ({flak} Rocketeers for {tanks} tanks)",
+        "siege": "long-range siege support",
+        "conscripts": "cheap infantry ({conscripts} GIs so far)",
+        "defenses": "basic base cover (a small supplement to the mobile army)",
+        "nothing": "nothing urgent",
+        "fortification": "optional heavy cannon base cover",
+        "reconnaissance": "map reconnaissance to locate the enemy base and distant attackers"
+      }
+    },
+    "resources": {
+      "home_ore": {
+        "thin": "home ore is scarce in repeated home views ({chips} crystal chips)",
+        "present": "home ore remains plentiful ({chips} crystal chips)",
+        "unknown": "home ore has not been checked recently"
+      },
+      "money": {
+        "low": "cash is low ({credits} credits)",
+        "enough": "cash is sufficient ({credits} credits)",
+        "unknown": "cash is unknown"
+      },
+      "gem_field": {
+        "recent": "a coherent ore or gem field was seen recently ({age} s ago, {chips} crystal chips)",
+        "stale": "the ore or gem field observation is stale",
+        "unknown": "no ore or gem field was confirmed"
+      },
+      "miner_team": {
+        "saved": "one Chrono Miner was saved as team 4; it must be rechecked before moving",
+        "missing": "no Chrono Miner team was saved"
+      },
+      "income": {
+        "unknown": "no income stall was observed",
+        "progressing": "cash or production advanced recently; no income stall was observed",
+        "stalled": "cash and production have stopped advancing for at least {seconds} seconds"
+      },
+      "base_threat": {
+        "quiet": "the base has been quiet",
+        "recent": "enemy units were near the base recently"
+      }
+    }
+  },
+  "playbook": {
+    "team_play": {
+      "items": ["power_plant", "pillbox", "patriot", "prism_tower", "grand_cannon"],
+      "min_refineries": 2, "reserve_tanks": 2, "quiet_seconds": 20,
+      "min_base_dots": 12, "safe_radius": 14, "max_probes": 8
+    },
+    "focus": {"check_every": 4.0},
+    "resources": {
+      "enabled": true,
+      "survey_ore": true,
+      "team": "4",
+      "home_reach": 900,
+      "home_check_every": 5,
+      "home_min_chips": 12,
+      "home_thin_seconds": 25,
+      "home_fresh_within": 20,
+      "survey_every": 8,
+      "survey_min_explored": 0.6,
+      "survey_enemy_radius": 8,
+      "survey_offsets": [
+        [-30, 12],
+        [-24, -8],
+        [-42, 0],
+        [
+          0,
+          -12
+        ],
+        [
+          12,
+          -8
+        ],
+        [
+          12,
+          0
+        ],
+        [
+          8,
+          12
+        ],
+        [
+          0,
+          12
+        ],
+        [
+          -12,
+          8
+        ],
+        [
+          -12,
+          0
+        ],
+        [
+          -8,
+          -12
+        ]
+      ],
+      "field_fresh_within": 90,
+      "max_radar_distance": 60,
+      "low_credits_below": 2500,
+      "quiet_seconds": 3,
+      "miner_min_health": 0.65,
+      "travel_wait": 8,
+      "travel_timeout": 50,
+      "gem_reach": 420,
+      "retry_after": 90,
+      "income_watch": 90,
+      "income_stall_seconds": 90,
+      "income_why": "The 2026-10-09 trial had visible home ore while both cash and queued production stopped advancing. After 90 seconds without a cash increase or meaningful production progress, StartLux may redirect the saved miner to coherent home ore. Reselect one healthy saved vehicle, return the camera home and verify a fresh crystal target before the harvest order. Production progress counts because spending can consume deliveries between credit samples. A cash rise after the order does not prove its source.",
+      "why": "The home observer counts the whole visible ore area: a 400-pixel reach incorrectly excluded the opening field, while recorded rich/depleted views had 60 versus 1-2 crystal chips. With fewer than twelve chips for 25 seconds, low cash and a quiet base, StartLux may choose a camera-only survey of nearby explored ground. Once a coherent field is observed, StartLux may send the separately saved Chrono Miner. Reselect one healthy vehicle, move it toward the field, then focus it and click fresh crystals. Unknown or stale evidence means no relocation. Input and subsequent cash rises do not by themselves prove a gem delivery."
+    },
+    "high_tech": {
+      "min_credits": 2500,
+      "min_refineries": 2,
+      "min_miners": 3,
+      "quiet_seconds": 0,
+      "min_army": 4,
+      "min_healthy_vehicles": 2,
+      "fresh_within": 45,
+      "enemy_strength": [
+        "weak",
+        "medium",
+        "strong"
+      ],
+      "max_shroud": 0.4,
+      "why": "After four Grizzlies, two refineries and three estimated miners, reserve Battle Lab funds while a fresh census confirms four vehicles with two healthy. Keep the patrol home until technology is established; Allied siege must arrive before repeated infantry and V3 raids wear down basic armor.",
+      "require_enemy_advantage": false,
+      "save_after_tanks": 4
+    },
+    "repair": {
+      "enabled": true,
+      "items": [
+        "war_factory",
+        "construction_yard",
+        "power_plant"
+      ],
+      "levels": [
+        "yellow",
+        "red"
+      ],
+      "min_credits": 300,
+      "scan_every": 20,
+      "bar_offsets": {
+        "power_plant": [-21, 9, 49, -26],
+        "war_factory": [-4, 27, 87, -17],
+        "construction_yard": [
+          -14,
+          39,
+          108,
+          -20
+        ]
+      },
+      "bar_min_lengths": {"power_plant": 10},
+      "settle_ms": 300,
+      "min_bar_length": 20,
+      "min_known_bar_length": 12,
+      "cleanup_attempts": 3
+    },
+    "buildings": {
+      "order": [
+        {
+          "item": "power_plant"
+        },
+        {
+          "item": "ore_refinery"
+        },
+        {
+          "item": "barracks"
+        },
+        {
+          "item": "war_factory"
+        },
+        {
+          "item": "power_plant",
+          "with": "airforce_command"
+        },
+        {
+          "item": "airforce_command",
+          "tanks": 4,
+          "even_when_rich": true
+        },
+        {
+          "item": "ore_refinery",
+          "tanks": 6,
+          "even_when_rich": true
+        },
+        {
+          "item": "power_plant",
+          "with": "battle_lab"
+        },
+        {
+          "item": "battle_lab",
+          "tanks": 4,
+          "credits": 2500,
+          "even_when_rich": true,
+          "high_tech": true
+        },
+        {
+          "item": "war_factory",
+          "credits": 6000,
+          "even_when_rich": true
+        },
+        {
+          "item": "power_plant"
+        }
+      ],
+      "why": "An item waits until its gate holds (tanks: that many tanks built, or the game older than or_after; credits: that much to spend), and the rest of the order waits with it (live game 13: the radar, a third refinery, two Rocketeers and three IFVs took the money; three Grizzlies met the rush).",
+      "rich": 5000,
+      "rich_why": "With more than this to spend every gate opens except even_when_rich ones: the factory cannot spend it fast enough anyway.",
+      "wait_for_next": 20.0,
+      "credit_slack": 200,
+      "tech_reserve": {
+        "items": [
+          "airforce_command",
+          "ore_refinery",
+          "battle_lab"
+        ],
+        "reserve_tanks": 1,
+        "threat_within": 30,
+        "why": "During raids, a second refinery, radar and its preparatory reactor leave enough credits for one tank. Genuine low-power recovery keeps priority."
+      },
+      "power": "power_plant",
+      "after_order": {
+        "item": "ore_refinery",
+        "up_to": 3,
+        "why": "Once the order is done, a third refinery only when rich (the home ore field runs out early: game 13 mined it out at about 4:30)."
+      },
+      "tech_up": {
+        "items": [
+          "battle_lab"
+        ],
+        "tanks": 4,
+        "why": "Battle Lab is part of the Allied composition after economy and fresh surviving defenders are verified."
+      }
+    },
+    "units": {
+      "tanks": [
+        "grizzly_tank",
+        "mirage_tank"
+      ],
+      "tank": "grizzly_tank",
+      "miners": {
+        "item": "chrono_miner",
+        "per_refinery": 2,
+        "max": 6,
+        "extra_when_expanding": 0,
+        "after_tanks": 4,
+        "before_second_refinery": true,
+        "tanks_first_until": null,
+        "save_unless_threat_within": 30,
+        "why": "Two Chrono Miners per refinery, capped at six. After four Grizzlies and a quiet period, fund the second miner before saving for the second refinery. Expand after six Grizzlies to reach Mirage and Prism production before repeated raids consume the tech budget. Prioritize defenders during current raids."
+      },
+      "second_refinery": {
+        "after_tanks": 6,
+        "reserve_tanks": 1,
+        "save_unless_threat_within": 30,
+        "why": "While only one refinery stands, the war factory waits until the second one and a tank are paid for (not when enemies are at the base: then tanks come first)."
+      },
+      "heavy_tank": {
+        "item": "mirage_tank",
+        "credits": 1000,
+        "after_lab": true,
+        "why": "Train two Mirages to screen the first Prism tanks, then complete six Mirages after four Prisms. Mirages fight infantry and armor while Prisms attack at range.",
+        "minimum": 6
+      },
+      "siege": {
+        "item": "prism_tank",
+        "one_per_heavy": 2,
+        "after_tanks": 4,
+        "min_flak": 2,
+        "min_heavy": 2,
+        "max": 4,
+        "quiet_seconds": 0,
+        "why": "After four tanks, two IFVs and two Mirages, train four available Prism tanks, including during raids. The Mirage screen protects siege production; the earlier Prism-first trial lost its factory before the screen formed. Availability supplies the Battle Lab prerequisite.",
+        "min_failures": 0,
+        "before_heavy": true
+      },
+      "anti_air": {
+        "item": "ifv",
+        "after_tanks": 1,
+        "one_per_tanks": 4,
+        "why": "First IFV after one Grizzly, then one per four tanks. Leave IFVs empty for their missile weapon; infantry loading is not implemented."
+      },
+      "base_dogs": {
+        "count": 2,
+        "reserve_tanks": 1,
+        "why": "Two additional dogs stay with home infantry for spy detection and defense against infantry drops. Preserve one tank's funding."
+      },
+      "scouts": {
+        "item": "attack_dog",
+        "count": 2,
+        "hold_others": 25,
+        "why": "Two Attack Dogs first: fast and cheap, they explore the ground around the base and find the enemy (the user's advice, 2026-09-27). Other infantry waits (at most hold_others seconds) until the dogs are grouped as the scout team, so P selects the dogs alone."
+      },
+      "conscripts": {
+        "item": "gi",
+        "early": 2
+      },
+      "anti_air_infantry": {
+        "item": "rocketeer",
+        "after_tanks": 2,
+        "one_per_tanks": 1,
+        "max": 0,
+        "credits": 1200,
+        "why": "Rocketeers are recognized but not mass-produced in this opening. IFVs supply mobile AA; spare cash funds armored technology."
+      },
+      "troopers": {
+        "items": [],
+        "credits": 3000,
+        "after_tanks": 8,
+        "why": "Keep early infantry limited; armor and siege take priority against any opponent."
+      },
+      "defenses": {
+        "item": "pillbox",
+        "max": 1,
+        "counted": [
+          "pillbox"
+        ],
+        "after_threat_within": 60,
+        "after_tanks": 2,
+        "reserve_tanks": 1,
+        "proactive_count": 1,
+        "front_without_radar": [
+          200,
+          0
+        ],
+        "why": "One cheap Pillbox after two tanks for early infantry cover, reserving a tank and expansion funds."
+      },
+      "queue_two": {
+        "lanes": [
+          "vehicles"
+        ],
+        "credits_per_cost": 3,
+        "count": 2,
+        "default_count": 1,
+        "why": "With money to spare two vehicles are queued at once: the factory keeps working while other tabs are served."
+      },
+      "reconnaissance": {
+        "item": "spy_satellite",
+        "after_heavy": 2,
+        "requires": ["battle_lab"],
+        "reserve_tanks": 1,
+        "save_unless_threat_within": 2,
+        "why": "Train the first two Mirages before reserving funds for optional reconnaissance. When the enemy base remains unknown after that screen forms, an available Spy Satellite reveals the map through the native game. Keep funds for a defender; missing cameos, low power or a known enemy base skip this investment. Camera movement alone cannot reveal shroud."
+      },
+      "fortification": {
+        "item": "grand_cannon",
+        "requires": [
+          "war_factory",
+          "airforce_command"
+        ],
+        "after_tanks": 4,
+        "after_heavy": 2,
+        "max": 1,
+        "quiet_seconds": 10,
+        "reserve_tanks": 2,
+        "why": "An available Grand Cannon can cover the approach after two Mirages have been produced, with power and two Grizzlies worth of funds reserved. Its native cameo can appear before Battle Lab, but early Cannon spending must wait for the Mirage screen. If its icon is absent, skip it and continue the shared Allied plan."
+      }
+    },
+    "army": {
+      "strength_unit": "grizzly_tank",
+      "infantry_weight": 0.5,
+      "counted_infantry_weight": 0.1,
+      "census": {
+        "every": 20.0,
+        "during_attack": 60.0,
+        "fresh_within": 45.0,
+        "before_attack_within": 10.0
+      },
+      "not_combat": [
+        "chrono_miner",
+        "engineer",
+        "mcv"
+      ],
+      "why": "Use Grizzly cost for production estimates and health bars for the surviving census. Miners and engineers are not combat units."
+    },
+    "attack": {
+      "keep_home_infantry": true,
+      "late_game": 720,
+      "early_min_above_small": 1,
+      "wave_every": 40.0,
+      "wave_gap": 8.0,
+      "siege_every": 45.0,
+      "reinforce_units": 2,
+      "why": "Waves re-target the survivors every wave_every seconds (siege_every while they stand beside enemy buildings), at least wave_gap apart; new units at home join the field army once reinforce_units of them are ready (one at a time they were destroyed on the way). The attack size question decides when the first wave goes; late_game is when its facts say late game.",
+      "guess_timeout": 60
+    },
+    "battle": {
+      "every": 5.0,
+      "seconds": 30.0,
+      "order_every": 3.0,
+      "after_wave": 3.0,
+      "placement_after_orders": 3,
+      "why": "Keep the camera on the fight. After Prisms are queued, stage outside the enemy base, verify separate native unit-type groups, and ask StartLux whether to hold, bombard, reposition or advance. Escorts screen the Prisms and engage only close threats. Missing Prism identity means hold, not a mixed-army charge.",
+      "prism": {
+        "teams": {"prism_tank": "5", "mirage_tank": "6", "ifv": "7", "grizzly_tank": "8"},
+        "label_probes": 16,
+        "range_pixels": 330,
+        "watch_pixels": 420,
+        "close_pixels": 250,
+        "screen_pixels": 75,
+        "step_pixels": 90,
+        "retreat_health": 0.75,
+        "clear_seconds": 3.0
+      }
+    },
+    "defense": {
+      "emergency_miners": {
+        "enabled": true,
+        "team": "4",
+        "group_attempts": 3,
+        "max_defenders": 2,
+        "defender_min_health": 0.5,
+        "min_health": 0.6,
+        "retreat_health": 0.45,
+        "max_seconds": 12,
+        "check_every": 3,
+        "cooldown": 25,
+        "reach": 450,
+        "ore_reach": 700,
+        "why": "Save the lone early Chrono Miner as team 4 for resource recovery only. It is unarmed and must never be used as a defender.",
+        "armed": false
+      },
+      "repeat": 4.0,
+      "watch_every": 8.0,
+      "watch_rounds": 2,
+      "offer_within": 20,
+      "big_raid_pixels": 150,
+      "big_raid_dots": 8,
+      "session_rounds": 8,
+      "order_every": 1.0,
+      "reach": 600,
+      "why": "Defend is offered for a recent threat. P twice selects owned military across the map so remote defenders can answer a fresh raider target; no selected unit in the current camera view does not prove the army is gone. Offscreen checks preserve visible home infantry before saving the map selection. Recheck the enemy after selection, attack-move within reach for up to session_rounds orders at order_every intervals, and repeat after repeat seconds. The native game acquires targets; color centroids are not verified unit hitboxes. big_raid_pixels or big_raid_dots can interrupt an attack."
+    },
+    "patrol": {
+      "team": "3",
+      "vehicles": 3,
+      "infantry": 1,
+      "reserve_vehicles": 4,
+      "min_credits": 2000,
+      "quiet_seconds": 30,
+      "min_health": 0.75,
+      "requires": [
+        "construction_yard",
+        "ore_refinery",
+        "war_factory",
+        "barracks",
+        "battle_lab"
+      ],
+      "prefer_transport": true,
+      "check_every": 8,
+      "refresh_every": 40,
+      "damage_drop": 0.1,
+      "retreat_health": 0.5,
+      "retreat_reach": 70,
+      "threat_radius_extra": 6,
+      "route": {
+        "front_reach": 150,
+        "offsets": [
+          [
+            -140,
+            0
+          ],
+          [
+            140,
+            0
+          ],
+          [
+            0,
+            60
+          ]
+        ],
+        "max_approaches": 2
+      },
+      "scout": {
+        "min_credits": 4000,
+        "quiet_seconds": 60,
+        "min_health": 0.85,
+        "refinery": "ore_refinery",
+        "min_refineries": 2,
+        "fresh_within": 12,
+        "offsets": [
+          [
+            0,
+            -18
+          ],
+          [
+            18,
+            0
+          ],
+          [
+            0,
+            18
+          ],
+          [
+            -18,
+            0
+          ]
+        ],
+        "min_distance": 6,
+        "max_distance": 24,
+        "enemy_base_distance": 24
+      },
+      "why": "Reuse a verified healthy squad without buying replacements, leaving a home vehicle reserve. Patrol a finite route, check for contact or damage, retreat below retreat_health and refresh only when healthy and the reserve is freshly counted. Nearby scouting needs surplus credits, refineries and a quiet base. Route and retreat reaches are tactical pixels; scout distances and threat_radius_extra are radar pixels."
+    },
+    "intel": {
+      "scout_team": "2",
+      "explore": {
+        "route": [
+          [
+            -330,
+            -250
+          ],
+          [
+            0,
+            -320
+          ],
+          [
+            380,
+            -320
+          ],
+          [
+            380,
+            200
+          ],
+          [
+            0,
+            320
+          ],
+          [
+            -380,
+            200
+          ]
+        ],
+        "leg_seconds": 4.0,
+        "check_every": 4,
+        "return_offset": [
+          0,
+          120
+        ],
+        "return_min_health": 0.5,
+        "deadline": {
+          "min_seconds": 60,
+          "max_seconds": 180,
+          "leg_multiplier": 5
+        },
+        "why": "Queue a finite route to the home view's edges, then return. The old short loop missed the northeastern gems after the starting ore ran out. Waypoints release the army task lane while dogs travel; leg_seconds sets the arrival deadline, and fresh observations must verify departure and return."
+      },
+      "scout_patience": 90,
+      "look_again": {
+        "enemy_base": 60,
+        "army": 30
+      },
+      "why": "Only the verified dog scout team may scout or receive a scout return order. Missing scouts must never select the main combat force. A scout that found nothing after scout_patience seconds is lost; a look is recent for look_again seconds."
+    }
+  },
+  "knowledge": "knowledge-ra2-allied.json",
+  "sources": [
+    {
+      "title": "Westwood Red Alert 2 manual",
+      "url": "https://device.report/m/ba163eb2f40487aec6e3dd8e4dad42b568354c0b7cb6ec7c0228584ad1de69e8.pdf",
+      "use": "France Grand Cannon, Iraq Desolator, Mirage camouflage, Prism weapon, Chrono Miner and Allied tech tree."
+    }
+  ]
+}

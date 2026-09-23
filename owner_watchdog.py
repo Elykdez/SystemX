@@ -6,7 +6,7 @@ import threading
 
 
 def configure_console():
-    if os.environ.get("VON_SHOW_CONSOLE", "1" if os.name == "nt" else "0") != "1":
+    if os.environ.get("SYSTEMX_SHOW_CONSOLE", "1" if os.name == "nt" else "0") != "1":
         return False
     if os.name != "nt":
         raise RuntimeError("The optional backend console currently requires Windows.")
@@ -20,12 +20,12 @@ def configure_console():
     window = kernel.GetConsoleWindow()
     # Double-clicking the batch launcher already gives us a visible console.
     if window and user.IsWindowVisible(window):
-        kernel.SetConsoleTitleW("SystemOne Von Server")
+        kernel.SetConsoleTitleW("SystemX Server")
         return True
     kernel.FreeConsole()
     if not kernel.AllocConsole():
-        raise RuntimeError("Unable to allocate the requested Von console.")
-    kernel.SetConsoleTitleW("SystemOne Von Server")
+        raise RuntimeError("Unable to allocate the requested System One console.")
+    kernel.SetConsoleTitleW("SystemX Server")
     # The parent can own an inherited hidden console. Reconnect Python streams
     # after detaching and allocating the backend's own console.
     sys.stdin = open("CONIN$", "r", encoding="utf-8")
@@ -36,7 +36,7 @@ def configure_console():
 
 
 def start_owner_watchdog():
-    value = os.environ.get("VON_OWNER_PID")
+    value = os.environ.get("SYSTEMX_OWNER_PID")
     if not value:
         return None
     try:
@@ -44,7 +44,7 @@ def start_owner_watchdog():
         if owner_pid <= 0:
             raise ValueError()
     except ValueError as error:
-        raise RuntimeError("VON_OWNER_PID must identify the owning application process.") from error
+        raise RuntimeError("SYSTEMX_OWNER_PID must identify the owning application process.") from error
     if os.name != "nt":
         raise RuntimeError("Automatic owner process monitoring currently requires Windows.")
 
@@ -67,6 +67,6 @@ def start_owner_watchdog():
         finally:
             kernel.CloseHandle(handle)
 
-    thread = threading.Thread(target=monitor, name="von-owner-watchdog", daemon=True)
+    thread = threading.Thread(target=monitor, name="systemone-owner-watchdog", daemon=True)
     thread.start()
     return thread

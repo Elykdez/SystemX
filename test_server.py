@@ -1,5 +1,7 @@
 """HTTP boundary tests. Stub is test-only; production has no fallback backend."""
 
+from model_config import MODEL_DESCRIPTION, MODEL_NAME, MODEL_OWNER, MODEL_REVISION
+
 import threading
 import time
 
@@ -26,7 +28,7 @@ class StubBackend:
         self.release.wait(3)
         if self.error:
             raise self.error
-        return {"model": "von-option-marker", "answers": {
+        return {"model": MODEL_NAME, "answers": {
             "action": {"type": "choice", "choice": "hold", "confidence": .6,
                        "probabilities": {"hold": .8, "attack": .2}}}, "usage": {"input_tokens": 12, "output_tokens": 1}}
 
@@ -55,6 +57,16 @@ def test_real_wire_shape_and_authentication():
         assert response.json()["latency_ms"] >= 0
 
 
+def test_health_and_model_listing_use_the_shared_model_configuration():
+    with TestClient(create_app(StubBackend(), api_key="")) as client:
+        wait_ready(client)
+        health = client.get("/health").json()
+        assert health["model"] == MODEL_NAME and health["revision"] == MODEL_REVISION
+        listing = client.get("/v1/models").json()
+        assert listing["models"] == [{"name": MODEL_NAME, "description": MODEL_DESCRIPTION}]
+        assert listing["data"] == [{"id": MODEL_NAME, "object": "model", "owned_by": MODEL_OWNER}]
+
+
 @pytest.mark.parametrize("question", [
     {"type": "choice", "instructions": "Choose.", "criteria": {}},
     {"type": "choice", "instructions": "Choose.", "criteria": {str(i): "Option" for i in range(17)}},
@@ -68,10 +80,12 @@ def test_invalid_questions_are_rejected(question):
         assert client.post("/v1/systemone", json={"state": "test", "questions": {"q": question}}).status_code == 422
 
 
-def test_bounded_body_and_unknown_model():
+@pytest.mark.parametrize("model", ["unknown-model", "",
+                                   MODEL_NAME + "-unsupported"])
+def test_bounded_body_and_unknown_model(model):
     with TestClient(create_app(StubBackend(), api_key="")) as client:
         data = payload()
-        data["model"] = "jev-latest"
+        data["model"] = model
         assert client.post("/v1/systemone", json=data).status_code == 422
         assert client.post("/v1/systemone", content=b"x" * 65537).status_code == 413
 
@@ -125,15 +139,15 @@ def test_shutdown_requires_ownership_token_and_loopback():
                      shutdown_callback=lambda: calls.append("stopped"))
     with TestClient(app, client=("127.0.0.1", 12345)) as client:
         assert client.post("/internal/shutdown").status_code == 401
-        assert client.post("/internal/shutdown", headers={"X-Von-Management-Token": "wrong"}).status_code == 401
+        assert client.post("/internal/shutdown", headers={"X-SystemX-Management-Token": "wrong"}).status_code == 401
         assert calls == []
-        assert client.post("/internal/shutdown", headers={"X-Von-Management-Token": "owner-secret"}).status_code == 202
+        assert client.post("/internal/shutdown", headers={"X-SystemX-Management-Token": "owner-secret"}).status_code == 202
         assert calls == ["stopped"]
     with TestClient(app, client=("192.0.2.1", 12345)) as client:
-        assert client.post("/internal/shutdown", headers={"X-Von-Management-Token": "owner-secret"}).status_code == 403
+        assert client.post("/internal/shutdown", headers={"X-SystemX-Management-Token": "owner-secret"}).status_code == 403
         assert calls == ["stopped"]
 
 
 def test_manual_server_has_no_management_endpoint():
     with TestClient(create_app(StubBackend(), api_key="")) as client:
-        assert client.post("/internal/shutdown", headers={"X-Von-Management-Token": "anything"}).status_code == 404
+        assert client.post("/internal/shutdown", headers={"X-SystemX-Management-Token": "anything"}).status_code == 404

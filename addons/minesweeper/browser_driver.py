@@ -7,9 +7,11 @@ from .session import fingerprint, StaleObservation
 
 
 class MinesweeperBrowser:
-    def __init__(self, page, action_timeout=3):
+    def __init__(self, page, action_timeout=3, can_act=None):
         self.page = page
         self.action_timeout = action_timeout
+        self.can_act = can_act
+        self.pending = None
 
     def observe(self):
         return parse_observation(self.page.evaluate(OBSERVE_SCRIPT))
@@ -32,11 +34,15 @@ class MinesweeperBrowser:
         }""", expected)
         if not allowed:
             raise StaleObservation("Cell is obscured, offscreen, disabled, or moved; no click sent.")
+        if self.can_act is not None and not self.can_act():
+            raise StaleObservation('Pending move was cancelled; no click sent.')
         self.page.mouse.click(*cell.box.center, button=button)
+        self.pending = cell.row, cell.col, button
 
     def wait_for_change(self, previous):
         deadline = time.monotonic() + self.action_timeout
         before = fingerprint(previous)
+        pending, self.pending = self.pending, None
         while time.monotonic() < deadline:
             current = self.observe()
             if fingerprint(current) != before:
@@ -46,6 +52,13 @@ class MinesweeperBrowser:
                 new_states = {(cell.row, cell.col): cell.state for cell in current.cells}
                 if new_states == old_states and current.status == previous.status:
                     raise StaleObservation("Only board geometry changed; the click result is unconfirmed.")
+                if pending is not None:
+                    row, col, button = pending
+                    state = new_states[row, col]
+                    if current.status != 'lost' and not (
+                            button == 'left' and state.isdigit() or button == 'right' and state == 'flag'):
+                        self.page.wait_for_timeout(50)
+                        continue
                 return current
             self.page.wait_for_timeout(50)
         raise TimeoutError("No visible change after clicking; stopped instead of repeating input.")

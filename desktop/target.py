@@ -104,6 +104,37 @@ class Target:
             raise DesktopPause("The game is covered at the target cell. Uncover it and resume.")
 
 
+imm32 = ct.WinDLL("imm32", use_last_error=True)
+imm32.ImmGetDefaultIMEWnd.argtypes = [wt.HWND]
+imm32.ImmGetDefaultIMEWnd.restype = wt.HWND
+user32.SendMessageTimeoutW.argtypes = [wt.HWND, wt.UINT, wt.WPARAM, wt.LPARAM, wt.UINT, wt.UINT,
+                                       ct.POINTER(ct.c_size_t)]
+user32.SendMessageTimeoutW.restype = ct.c_size_t
+user32.GetKeyboardLayout.argtypes = [wt.DWORD]
+user32.GetKeyboardLayout.restype = ct.c_void_p
+
+
+def ime_state(hwnd):
+    """Read-only IME status of the window's thread: {'open', 'native', 'layout'}.
+
+    An open IME in native (e.g. Chinese) conversion mode turns letter hotkeys into
+    composition input, so keyboard skills must not run while it is active.
+    """
+    thread = user32.GetWindowThreadProcessId(hwnd, None)
+    layout = (user32.GetKeyboardLayout(thread) or 0) & 0xFFFF
+    ime = imm32.ImmGetDefaultIMEWnd(hwnd)
+    if not ime:
+        return dict(open=False, native=False, layout=layout)
+    result = ct.c_size_t()
+    status = {}
+    for name, command in (('open', 0x0005), ('conversion', 0x0001)):
+        ok = user32.SendMessageTimeoutW(ime, 0x0283, command, 0, 0x0002, 200, ct.byref(result))
+        status[name] = result.value if ok else None
+    opened = bool(status['open'])
+    native = opened and status['conversion'] is not None and bool(status['conversion'] & 0x0001)
+    return dict(open=opened, native=native, layout=layout)
+
+
 def windows():
     found = []
     callback_type = ct.WINFUNCTYPE(wt.BOOL, wt.HWND, wt.LPARAM)

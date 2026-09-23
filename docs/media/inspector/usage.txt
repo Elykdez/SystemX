@@ -1,0 +1,15 @@
+SystemX inspector media
+
+Recommended overview: systemx-inspector-highlights.mp4 (20 seconds)
+Ready-to-use loop: systemx-inspector-highlights.gif
+
+The overview explains System 0 perception, System 1 bounded choices, guarded execution and outcome verification, and persistent workflow focus.
+
+These are rendered replays using recorded gameplay frames, current production OpenCV readers and annotation code. Decision and workflow examples are explicitly illustrative. They do not show new live model inference or new game input. Native Windows capture was unavailable.
+
+Separate perception replays:
+- allied-inspector-replay.mp4 / .gif (16 seconds)
+- soviet-inspector-replay.mp4 / .gif (10 seconds)
+
+README embed, from the repository root:
+![SystemX: see, choose, act and verify](docs/media/inspector/systemx-inspector-highlights.gif)

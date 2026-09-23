@@ -11,18 +11,18 @@ from owner_watchdog import configure_console, start_owner_watchdog
 
 
 def test_standalone_server_has_no_owner_watchdog(monkeypatch):
-    monkeypatch.delenv("VON_OWNER_PID", raising=False)
+    monkeypatch.delenv("SYSTEMX_OWNER_PID", raising=False)
     assert start_owner_watchdog() is None
 
 
 def test_hidden_console_does_not_change_console_handles(monkeypatch):
-    monkeypatch.setenv("VON_SHOW_CONSOLE", "0")
+    monkeypatch.setenv("SYSTEMX_SHOW_CONSOLE", "0")
     assert configure_console() is False
 
 
 @pytest.mark.parametrize("value", ["invalid", "0", "-1"])
 def test_invalid_owner_fails_closed(monkeypatch, value):
-    monkeypatch.setenv("VON_OWNER_PID", value)
+    monkeypatch.setenv("SYSTEMX_OWNER_PID", value)
     with pytest.raises(RuntimeError, match="owning application"):
         start_owner_watchdog()
 
@@ -37,7 +37,7 @@ def test_owner_death_stops_server_before_heavy_import_finishes(tmp_path):
     )
     python = getattr(sys, "_base_executable", sys.executable)
     owner = subprocess.Popen([python, "-c", "import time; time.sleep(60)"])
-    env = {**os.environ, "VON_OWNER_PID": str(owner.pid), "PYTHONPATH": str(tmp_path)}
+    env = {**os.environ, "SYSTEMX_OWNER_PID": str(owner.pid), "PYTHONPATH": str(tmp_path)}
     child = subprocess.Popen([python, str(Path(__file__).with_name("server.py"))],
                              env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     try:
@@ -73,9 +73,9 @@ def test_requested_console_allocates_a_visible_backend_window(tmp_path, show_con
         "time.sleep(30)\n"
     )
     env = dict(os.environ)
-    env.pop("VON_SHOW_CONSOLE", None)
+    env.pop("SYSTEMX_SHOW_CONSOLE", None)
     if show_console is not None:
-        env["VON_SHOW_CONSOLE"] = show_console
+        env["SYSTEMX_SHOW_CONSOLE"] = show_console
     child = subprocess.Popen([getattr(sys, "_base_executable", sys.executable), "-c", code],
                              cwd=Path(__file__).parent, env=env, creationflags=subprocess.CREATE_NO_WINDOW)
     try:

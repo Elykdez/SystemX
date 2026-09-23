@@ -1,1 +1,1 @@
-"""Optional SystemOne integrations; core inference remains independent."""
+"""Optional SystemX integrations; core inference remains independent."""

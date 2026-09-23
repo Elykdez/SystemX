@@ -31,17 +31,31 @@ class DesktopDriver:
         self._recognition_settings = None
         self._boxes = tuple(grid.boxes())
 
-    def parking_point(self):
+    def parking_point(self, cell=None):
         g = self.grid
+        if cell is not None:
+            x, y = cell.box.center
+            options = []
+            if g.y >= 64:
+                options.append((x, g.y - 64))
+            if g.x >= 64:
+                options.append((g.x - 64, y))
+            if g.y + g.height + 64 < self.geometry.height:
+                options.append((x, g.y + g.height + 64))
+            if g.x + g.width + 64 < self.geometry.width:
+                options.append((g.x + g.width + 64, y))
+            if options:
+                px, py = min(options, key=lambda p: (p[0] - x)**2 + (p[1] - y)**2)
+                return self.geometry.x + px, self.geometry.y + py
         if g.y >= 24:
-            return self.geometry.x + g.x + g.width / 2, self.geometry.y + g.y - 20
+            return self.geometry.x + g.x + g.width / 2, self.geometry.y + g.y - min(64, g.y - 4)
         if g.x >= 24:
-            return self.geometry.x + g.x - 20, self.geometry.y + g.y + g.height / 2
+            return self.geometry.x + g.x - min(64, g.x - 4), self.geometry.y + g.y + g.height / 2
         raise DesktopPause('Leave at least 24 pixels above or left of the board for parking the pointer.')
 
     def prepare(self):
         self.mouse.move(*self.parking_point(), self.geometry, self.generation)
-        time.sleep(.15)
+        time.sleep(.35)
 
     def _read(self):
         g = self.grid
@@ -108,7 +122,7 @@ class DesktopDriver:
             raise DesktopPause('Pending decision was cancelled.')
         x, y = cell.box.center
         # Software cursor highlights can be captured even when hardware cursors are excluded.
-        self.mouse.click(x + self.geometry.x, y + self.geometry.y, button, self.geometry, self.generation, park=self.parking_point())
+        self.mouse.click(x + self.geometry.x, y + self.geometry.y, button, self.geometry, self.generation, park=self.parking_point(cell))
         self._previous_observation = None
         self.pending = (cell.row, cell.col, button)
 

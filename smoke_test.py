@@ -1,5 +1,7 @@
 """Exercise a running real server and record end-to-end HTTP latency."""
 
+from model_config import MODEL_NAME
+
 import argparse
 import json
 import os
@@ -17,8 +19,8 @@ def main():
     if not 1 <= args.samples <= 100:
         parser.error("--samples must be between 1 and 100")
     headers = {"Content-Type": "application/json"}
-    if os.environ.get("VON_API_KEY"):
-        headers["Authorization"] = "Bearer " + os.environ["VON_API_KEY"]
+    if os.environ.get("SYSTEMX_API_KEY"):
+        headers["Authorization"] = "Bearer " + os.environ["SYSTEMX_API_KEY"]
 
     def post(payload):
         req = urllib.request.Request(args.url + "/v1/systemone", json.dumps(payload).encode(), headers)
@@ -35,7 +37,7 @@ def main():
             "No financial loss.", "An incorrect charge needs correction.", "Repeated major financial losses."]}}
     billing = "I was charged twice for one order. Please refund the duplicate charge."
     technical = "The application crashes whenever I open settings. My payments are correct and I am not requesting a refund."
-    payload = {"model": "von-option-marker", "state": billing, "questions": questions}
+    payload = {"model": MODEL_NAME, "state": billing, "questions": questions}
     response = post(payload)
     assert set(response["answers"]) == set(questions)
     for name in ("route", "impact"):

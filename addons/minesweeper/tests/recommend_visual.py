@@ -7,7 +7,7 @@ from pathlib import Path
 
 import cv2
 from addons.minesweeper.visual.recognition import Grid, Profile, recognize
-from addons.minesweeper.decision import VonDecision, choose_move
+from addons.minesweeper.decision import SystemOneDecision, choose_move
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
     if board is None:
         result = dict(status='unknown', unknown=[d for d in details if d['label'] is None])
     else:
-        brain = VonDecision(args.server)
+        brain = SystemOneDecision(args.server)
         try:
             action, decision = choose_move(board, brain)
         finally:

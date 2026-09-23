@@ -1,5 +1,13 @@
 # Appearance profiles
 
+`boyfriends-arcade.json` contains visible tile samples from Boyfriend's Arcade
+Collection on Windows at 96 DPI, with a 447 x 447 pixel beginner board. Load it
+with the desktop controller's Load profile button, then calibrate the current
+window and grid. It covers hidden cells, empty cells, flags, and digits 1-4.
+Digits 5-8 and mine tiles remain unsupported and safely pause for teaching.
+The profile includes pixel-alignment variants observed during live play;
+another scale or theme may require new samples.
+
 `classic-web.json` contains normalized 32 x 32 BGR cell samples captured from
 the user's locally hosted Minesweeper page. It uses visible rendered pixels,
 not hidden mines or application state. Samples cover the classic Segoe UI theme:

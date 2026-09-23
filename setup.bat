@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title SystemOne Server Setup
+title SystemX Server Setup
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0setup.ps1" %*
 set "setupExitCode=%errorlevel%"
 echo.

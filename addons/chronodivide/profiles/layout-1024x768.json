@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "name": "chronodivide-1024x768",
+  "calibrated": true,
+  "source": "Measured from calibration-01 recording (Firefox, 100% zoom, Soviet sidebar).",
+  "canvas": [1024, 768],
+  "regions": {
+    "credits": [896, 3, 96, 15],
+    "radar": [869, 47, 143, 113],
+    "power": [856, 228, 14, 498],
+    "repair": [887, 162, 54, 35],
+    "sell": [941, 162, 52, 35],
+    "tabs_row": [874, 192, 132, 34],
+    "tactical": [0, 0, 850, 736],
+    "command_bar": [0, 738, 850, 30],
+    "sidebar": [850, 0, 174, 768]
+  },
+  "tabs": {
+    "buildings": [876, 193, 30, 32],
+    "defenses": [909, 193, 30, 32],
+    "infantry": [941, 193, 30, 32],
+    "vehicles": [974, 193, 30, 32]
+  },
+  "grid": {"x": 877, "y": 228, "cols": 2, "rows": 10, "width": 60, "height": 48, "pitch_x": 64, "pitch_y": 50},
+  "anchors": {"top_buttons": [874, 20, 132, 24], "sidebar_bottom": [850, 736, 174, 32]},
+  "menu": [877, 228, 128, 200],
+  "points": {
+    "waypoint": [362, 754],
+    "park": [940, 690],
+    "radar_park": [940, 103],
+    "resume_mission": [940, 713],
+    "recapture": [425, 650],
+    "tactical_center": [425, 368],
+    "home": [428, 360]
+  }
+}

@@ -21,7 +21,7 @@ from addons.minesweeper.visual.recognition import Grid, Profile
 
 
 @pytest.fixture
-def controller(monkeypatch):
+def controller(monkeypatch, capfd):
     import numpy as np
     image = np.full((430, 400, 3), 160, np.uint8)
     crop = cv2.imread(str(Path(__file__).parent / 'fixtures/visual/heldout-win.png'))
@@ -33,7 +33,9 @@ def controller(monkeypatch):
     monkeypatch.setattr(player, 'Hotkeys', lambda callback: SimpleNamespace(close=lambda: None))
     from desktop.target import user32
     monkeypatch.setattr(user32, 'SetForegroundWindow', lambda _: True)
-    root = tk.Tk()
+    # Tcl caches Windows standard handles; pytest's temporary FDs can invalidate them.
+    with capfd.disabled():
+        root = tk.Tk()
     root.withdraw()
     app = player.Controller(root, SimpleNamespace(policy='logic', server='http://127.0.0.1:8000'))
     try:
@@ -112,3 +114,69 @@ def test_board_only_preview_retains_calibration_and_teaching_coordinates(control
     controller.label.set('0')
     controller.teach()
     assert controller.details[0]['label'] == '0'
+
+
+def test_switching_adapters_clears_calibration_and_invalidates_pending_input(controller):
+    controller.capture()
+    controller.grid = Grid(30, 70, 324, 324, 9, 9, 10)
+    controller.trust.set(True)
+    controller.gate.start()
+    generation = controller.gate.generation
+    controller.interface.set('browser')
+    controller.change_interface()
+    assert not controller.gate.allowed(generation)
+    assert controller.grid is None and controller.frame is None
+    assert not controller.trust.get()
+    assert controller.browser_settings.winfo_manager() == 'pack'
+    assert controller.visual_settings.winfo_manager() == ''
+    assert 'BROWSER LABELS' in controller.inspector.badge.get()
+
+
+def test_adapter_change_while_deciding_cancels_and_keeps_original_mode(controller):
+    controller.browser = SimpleNamespace(busy=True, close=lambda: None)
+    controller.gate.start()
+    generation = controller.gate.generation
+    controller.interface.set('browser')
+    with pytest.raises(player.DesktopPause, match='Stopping'):
+        controller.change_interface()
+    assert controller.interface.get() == 'visual'
+    assert not controller.gate.allowed(generation)
+
+
+def test_browser_step_uses_same_inspector_and_generation_gate(controller):
+    calls = []
+    controller.interface.set('browser')
+    controller.change_interface()
+    controller.browser = SimpleNamespace(connected=True, busy=False, close=lambda: None,
+                                          play=lambda *args: calls.append(args))
+    controller.start(True)
+    generation, single, policy, max_steps, delay = calls[0]
+    assert controller.gate.allowed(generation)
+    assert single and policy == 'logic' and max_steps == 500
+    controller.hotkey('pause')
+    assert not controller.gate.allowed(generation)
+
+
+def test_browser_preview_shows_board_and_live_inspector(controller):
+    from io import BytesIO
+    from PIL import Image
+    from addons.minesweeper.board import Board, Box, Cell
+    controller.interface.set('browser')
+    controller.change_interface()
+    controller.browser = SimpleNamespace(close=lambda: None)
+    board = Board(1, 1, (Cell(0, 0, 'hidden', Box(0, 0, 24, 24)),), 'playing')
+    pixels = BytesIO()
+    Image.new('RGB', (24, 24), 'gray').save(pixels, format='PNG')
+    controller.events.put(('browser', (controller.browser, 'preview', (board, pixels.getvalue()))))
+    controller.poll()
+    assert 'Board 1 x 1' in controller.inspector.text.get('1.0', 'end')
+    assert controller.photo is not None
+    assert controller.inspector.text.cget('state') == 'disabled'
+
+
+def test_inspector_stacks_at_narrow_width_and_restores_sidebar(controller):
+    inspector = controller.inspector
+    inspector.layout(SimpleNamespace(width=740))
+    assert inspector.panel.grid_info()['row'] == 1
+    inspector.layout(SimpleNamespace(width=1080))
+    assert inspector.panel.grid_info()['column'] == 1

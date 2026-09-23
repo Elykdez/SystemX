@@ -1,0 +1,435 @@
+{
+  "version": 1,
+  "name": "startlux-ra2-soviet",
+  "faction": "soviet",
+  "knowledge": "knowledge-ra2-soviet.json",
+  "decision_checks": "decision-checks-soviet.json",
+  "about": [
+    "Shared Soviet faction strategy for any Soviet country, against any hostile faction, in solo or team matches. Desolators are optional: offer them only when their sidebar icon is available, and otherwise continue the common Soviet army. Ignore friendly players in combat; finish hostile bases one at a time. Consider construction near a revealed ally only after our base is established and safe.",
+    "StartLux's side of the Chrono Divide player: the questions StartLux answers, the words of the facts it answers them from, the rule defaults, and the playbook of numbers. The player only measures the game and carries out the plan; every choice about how to play is made here.",
+    "StartLux v1.1 4B Instant uses the existing situation-worded decision profile. Requalify wording and decision quality whenever the configured model changes. Requalify this profile with python -m addons.chronodivide.tools.decisions before live Chrono Divide testing.",
+    "Only feasible options are offered (an attack needs the radar and the attack size at home, defend needs a recent threat, ...). Each question's rules are its default answer, used until StartLux answers and whenever StartLux is late or unavailable, so the player never waits: the first rule whose option is offered and whose conditions hold. Conditions name fact classes: the keys of the fact words below (economy: no_refinery; money: pile_up; ...), plus posture (the current one) and raid (big or small, from the playbook's defense numbers).",
+    "Times are seconds of real time since the controller started; at game speed 6 the game runs about four times faster."
+  ],
+  "systemone": {
+    "strategy_every": 15.0,
+    "urgent": {"threat_within": 2.0, "gap": 3.0},
+    "deadlines": {"strategy": 1.5, "urgent": 0.6, "production": 0.8, "focus": 8.0},
+    "memo_seconds": 2.0
+  },
+  "questions": {
+    "placement": {
+      "type": "choice",
+      "instructions": "Where does this finished support building belong?",
+      "facts": ["site"],
+      "options": {
+        "home": "Our base needs the building, is threatened, or no safe allied construction site is available.",
+        "ally_base": "Our base is established, powered, covered and quiet. Funds for two tanks remain. A safe teammate base is revealed and Build off Ally is enabled; try support construction there."
+      },
+      "rules": [{"choose": "ally_base", "when": {"site": "ally_available"}}, {"choose": "home"}]
+    },
+    "focus": {
+      "type": "choice",
+      "instructions": "What should our army focus on now? Compare the army and attack facts with each option; the enemy base is destroyed only by attacking it.",
+      "facts": ["army", "attack", "base_threat"],
+      "options": {
+        "defend": "Inspect the current raid near our base and keep the camera on the fight, including enemies outside the home view. Use defenders while dogs guard home. Right only when enemy units are near our base right now.",
+        "attack": "Send the whole army to destroy the enemy base, and keep sending reinforcements. Right when the attack size is reached, or an attack is already under way.",
+        "build": "Keep the army at home, guarding the base, while it grows. Right while the attack size is not reached and no attack is under way."
+      },
+      "rules": [
+        {"choose": "defend", "when": {"situation": "defend"}},
+        {"choose": "attack", "when": {"situation": "attack"}},
+        {"choose": "build"}
+      ]
+    },
+    "objective": {
+      "type": "choice",
+      "instructions": "Which description matches our economy right now?",
+      "facts": ["economy", "money", "army", "base_threat"],
+      "options": {
+        "expand_economy": "Too few miners, or only one refinery.",
+        "build_army": "Enough miners and refineries, and credits are being spent.",
+        "tech_up": "Enough miners and refineries, and credits pile up unused."
+      },
+      "rules": [
+        {"choose": "expand_economy", "when": {"economy": ["no_refinery", "one_refinery", "few_miners"]}},
+        {"choose": "tech_up", "when": {"money": "pile_up"}},
+        {"choose": "build_army"}
+      ]
+    },
+    "posture": {
+      "type": "choice",
+      "instructions": "What should our army do now? Compare the army and attack facts with each option; the enemy base is destroyed only by attacking it.",
+      "facts": ["army", "attack", "base_threat"],
+      "options": {
+        "gather": "Keep the army at home, guarding the base, while it grows. Right while the attack size is not reached and no attack is under way.",
+        "attack": "Send the whole army to destroy the enemy base, and keep sending reinforcements. Right when the attack size is reached, or an attack is already under way.",
+        "defend": "Bring the whole army home to fight the enemies attacking our base. Right only when enemy units are near our base right now."
+      },
+      "rules": [
+        {"choose": "defend", "when": {"base_threat": "now", "posture": ["gather", "defend"]}},
+        {"choose": "defend", "when": {"base_threat": "now", "raid": "big"}},
+        {"choose": "attack"},
+        {"choose": "gather"}
+      ]
+    },
+    "attack_size": {
+      "type": "choice",
+      "instructions": "How many tanks must our army have at home before it attacks the enemy base?",
+      "facts": ["game_time", "failed_attacks", "enemy_defenses", "reinforcements"],
+      "options": {
+        "small": {"tanks": 4, "words": "Late game, the enemy defenses were observed weak, and no attack failed yet."},
+        "medium": {"tanks": 5, "words": "Early game, no attack failed yet, and the enemy defenses are weak."},
+        "large": {"tanks": 12, "words": "No attack failed yet, and either the enemy defenses are unknown or medium, or reinforcements have stalled with a fresh army of at least 12 vehicles."},
+        "larger": {"tanks": 14, "words": "Exactly one attack failed; or no attack failed yet, the enemy defenses are strong and reinforcements have not stalled."},
+        "largest": {"tanks": 16, "words": "Two or more attacks failed."}
+      },
+      "rules": [
+        {"choose": "largest", "when": {"failed_attacks": "more"}},
+        {"choose": "larger", "when": {"failed_attacks": "one"}},
+        {"choose": "large", "when": {"reinforcements": "stalled", "failed_attacks": "none"}},
+        {"choose": "small", "when": {"game_time": "late", "enemy_defenses": "weak", "failed_attacks": "none"}},
+        {"choose": "medium", "when": {"enemy_defenses": "weak"}},
+        {"choose": "larger", "when": {"enemy_defenses": "strong"}},
+        {"choose": "large"}
+      ]
+    },
+    "intel": {
+      "type": "choice",
+      "instructions": "Which description matches our knowledge of the battlefield?",
+      "facts": ["enemy_base", "scout", "attack", "surroundings"],
+      "options": {
+        "explore": "Dog scouts are ready, and the ground around our base was not explored yet.",
+        "scout": "The enemy base is not found yet, and no scout is on the way.",
+        "look_enemy_base": "The enemy base is found, but it was not looked at recently.",
+        "look_at_army": "Our attack is under way, but the fight was not looked at recently.",
+        "nothing": "Everything important was looked at recently, or a scout is on the way."
+      },
+      "rules": [
+        {"choose": "explore"},
+        {"choose": "scout"},
+        {"choose": "look_at_army"},
+        {"choose": "look_enemy_base"},
+        {"choose": "nothing"}
+      ]
+    },
+    "resources": {
+      "type": "choice",
+      "instructions": "Which option matches the current resource facts?",
+      "facts": ["home_ore", "money", "gem_field", "miner_team", "income", "base_threat"],
+      "options": {
+        "keep_home": "Home ore remains plentiful and no income stall was observed, or cash is sufficient, or enemy units were near the base recently.",
+        "harvest_home_ore": "Home ore remains plentiful, but cash and production have stopped advancing. Cash is low, one War Miner was saved, and the base has been quiet.",
+        "survey_gems": "Home ore is scarce in repeated home views, cash is low, no recent gem field is confirmed, one War Miner was saved, and the base has been quiet.",
+        "harvest_gems": "Home ore is scarce in repeated home views, cash is low, a coherent gem field was seen recently, one War Miner was saved, and the base has been quiet."
+      },
+      "rules": [
+        {"choose": "harvest_home_ore", "when": {"home_ore": "present", "income": "stalled", "money": "low", "miner_team": "saved", "base_threat": "quiet"}},
+        {"choose": "harvest_gems", "when": {"home_ore": "thin", "money": "low", "gem_field": "recent", "miner_team": "saved", "base_threat": "quiet"}},
+        {"choose": "survey_gems", "when": {"home_ore": "thin", "money": "low", "gem_field": ["unknown", "stale"], "miner_team": "saved", "base_threat": "quiet"}},
+        {"choose": "keep_home"}
+      ]
+    },
+    "production": {
+      "type": "choice",
+      "instructions": "Which description matches the needs?",
+      "facts": ["lane", "needs"],
+      "options": {
+        "attack_dog": "The needs include dog scouts.",
+        "war_miner": "The needs include too few miners.",
+        "flak_track": "The needs include anti-air support.",
+        "flak_trooper": "The needs include anti-air infantry support.",
+        "v3_launcher": "The needs include long-range siege support after a failed attack.",
+        "apocalypse_tank": "The needs include credits to spare.",
+        "rhino_tank": "No other need applies: the default tank.",
+        "conscript": "The needs include cheap infantry.",
+        "desolator": "The needs include credits to spare.",
+        "sentry_gun": "The needs include basic base cover."
+      },
+      "rules_about": "No rules: the default is the first option the playbook offers (its units section lists them by need)."
+    }
+  },
+  "facts": {
+    "placement": {"site": {"ally_available": "Our base is established, powered, covered and quiet. Funds for two tanks remain. A safe teammate base is revealed and Build off Ally is enabled."}},
+    "strategy": {
+      "economy": {
+        "no_refinery": "no refinery yet",
+        "one_refinery": "only one refinery",
+        "few_miners": "too few miners",
+        "enough": "enough miners and refineries"
+      },
+      "money": {
+        "unknown": "unknown",
+        "text": "{credits} credits: {level}",
+        "levels": [
+          {"name": "pile_up", "at_least": 5000, "words": "credits pile up unused"},
+          {"name": "spent", "at_least": 600, "words": "credits are being spent"},
+          {"name": "run_out", "words": "credits run out"}
+        ]
+      },
+      "army": {
+        "text": "{available} combat units ready at home; attack size {size}: {status}",
+        "reached": "attack size reached",
+        "missing": "attack size not reached ({missing} more)"
+      },
+      "attack": {
+        "not_started": "not started",
+        "under_way": "under way for {seconds} s: {waves} waves sent, last {last} s ago, attacking {target}",
+        "targets": {
+          "enemy": "enemy objects seen on the radar",
+          "guess": "the likely enemy start position",
+          "search": "shrouded areas (enemy not found yet)",
+          "none": "no target"
+        }
+      },
+      "base_threat": {
+        "unknown": "none seen",
+        "levels": [
+          {"name": "now", "within": 10, "words": "enemy units near our base right now"},
+          {"name": "recent", "within": 60, "words": "enemy units were near our base {age} s ago"},
+          {"name": "none", "words": "none seen in the last minute"}
+        ]
+      }
+    },
+    "attack_size": {
+      "game_time": {
+        "early": "early game ({minutes} minutes played)",
+        "late": "late game ({minutes} minutes played); enemy strength depends on observation"
+      },
+      "failed_attacks": {
+        "none": "none: no attack failed yet",
+        "one": "exactly one attack failed: our army was destroyed",
+        "more": "two or more attacks failed ({count}): our army was destroyed each time"
+      },
+      "enemy_defenses": {
+        "unknown": "unknown (the enemy base was not looked at yet)",
+        "weak": "weak",
+        "medium": "medium",
+        "strong": "strong"
+      },
+      "reinforcements": {
+        "stalled": "Cash is low and cash and production have stopped advancing for at least 90 seconds; a fresh census confirms at least 12 vehicles at home. Waiting for more vehicles may never finish.",
+        "not_limited": "A reinforcement stall with a fresh army of at least 12 vehicles is not confirmed."
+      }
+    },
+    "intel": {
+      "enemy_base": {
+        "not_found": "not found yet",
+        "recent": "found; looked at recently ({age} s ago{defenses})",
+        "stale": "found; not looked at recently",
+        "stale_seen": "found; not looked at recently ({age} s ago{defenses})",
+        "defenses": ", {strength} defenses"
+      },
+      "scout": {
+        "out": "a scout is on the way (sent {age} s ago)",
+        "none": "no scout is on the way"
+      },
+      "surroundings": {
+        "unexplored": "the ground around our base was not explored yet; dog scouts are ready",
+        "no_scouts": "the ground around our base was not explored yet; no dog scouts",
+        "explored": "the ground around our base was explored"
+      },
+      "attack": {
+        "not_started": "not started",
+        "recent": "under way; the fight was looked at recently",
+        "stale": "under way; the fight was not looked at recently",
+        "detail": " ({age} s ago: {own} of our objects, {enemy} enemy objects)"
+      }
+    },
+    "production": {
+      "needs": {
+        "scouts": "dog scouts ({dogs} of {count})",
+        "saving_refinery": "the second refinery (saving for it)",
+        "miners": "too few miners ({miners} of {wanted})",
+        "spare_credits": "credits to spare ({credits})",
+        "anti_air": "anti-air support ({flak} Flak Tracks for {tanks} tanks)",
+        "anti_air_infantry": "anti-air infantry support ({flak} Flak Troopers for {tanks} tanks)",
+        "siege": "long-range siege support after a failed attack",
+        "conscripts": "cheap infantry ({conscripts} conscripts so far)",
+        "defenses": "basic base cover (a small supplement to the mobile army)",
+        "nothing": "nothing urgent"
+      }
+    },
+    "resources": {
+      "home_ore": {"thin": "home ore is scarce in repeated home views ({chips} crystal chips)", "present": "home ore remains plentiful ({chips} crystal chips)", "unknown": "home ore has not been checked recently"},
+      "money": {"low": "cash is low ({credits} credits)", "enough": "cash is sufficient ({credits} credits)", "unknown": "cash is unknown"},
+      "gem_field": {"recent": "a coherent gem field was seen recently ({age} s ago, {chips} crystal chips)", "stale": "the gem field observation is stale", "unknown": "no gem field was confirmed"},
+      "miner_team": {"saved": "one War Miner was saved as team 4; it must be rechecked before moving", "missing": "no War Miner team was saved"},
+      "income": {"unknown": "no income stall was observed", "progressing": "cash or production advanced recently; no income stall was observed", "stalled": "cash and production have stopped advancing for at least {seconds} seconds"},
+      "base_threat": {"quiet": "the base has been quiet", "recent": "enemy units were near the base recently"}
+    }
+  },
+  "playbook": {
+    "team_play": {
+      "items": ["tesla_reactor", "sentry_gun", "flak_cannon", "tesla_coil"],
+      "min_refineries": 2, "reserve_tanks": 2, "quiet_seconds": 20,
+      "min_base_dots": 12, "safe_radius": 14, "max_probes": 8
+    },
+    "focus": {"check_every": 4.0},
+    "resources": {
+      "enabled": true, "team": "4", "home_reach": 900, "home_check_every": 5,
+      "home_min_chips": 12, "home_thin_seconds": 25, "home_fresh_within": 20,
+      "survey_every": 8, "survey_min_explored": 0.6, "survey_enemy_radius": 8,
+      "survey_offsets": [[0, -12], [12, -8], [12, 0], [8, 12], [0, 12], [-12, 8], [-12, 0], [-8, -12]],
+      "field_fresh_within": 90, "max_radar_distance": 30,
+      "low_credits_below": 2500, "quiet_seconds": 25,
+      "miner_min_health": 0.65, "travel_wait": 8, "travel_timeout": 50,
+      "gem_reach": 420, "retry_after": 90, "income_watch": 90, "income_stall_seconds": 90,
+      "income_why": "The 2026-10-09 trial had visible home ore while both cash and queued production stopped advancing. After 90 seconds without a cash increase or meaningful production progress, StartLux may redirect the saved miner to coherent home ore. Reselect one healthy saved vehicle, return the camera home and verify a fresh crystal target before the harvest order. Production progress counts because spending can consume deliveries between credit samples. A cash rise after the order does not prove its source.",
+      "why": "The home observer counts the whole visible ore area: a 400-pixel reach incorrectly excluded the opening field, while recorded rich/depleted views had 60 versus 1-2 crystal chips. With fewer than twelve chips for 25 seconds, low cash and a quiet base, StartLux may choose a camera-only survey of nearby explored ground. Once a coherent field is observed, StartLux may send the separately saved War Miner. Reselect one healthy vehicle, move it toward the field, then focus it and click fresh crystals. Unknown or stale evidence means no relocation. Input and subsequent cash rises do not by themselves prove a gem delivery."
+    },
+    "high_tech": {
+      "min_credits": 5000, "min_refineries": 2, "min_miners": 4,
+      "quiet_seconds": 60, "min_army": 12, "min_healthy_vehicles": 8,
+      "fresh_within": 45, "enemy_strength": ["weak", "medium"], "max_shroud": 0.4,
+      "why": "Rhinos, Flak Tracks and dogs remain the core force. Battle Lab spending and advanced units require surplus cash, established economy, a quiet base, a fresh surviving army census and a recent visible enemy base with weak or medium defenses. Unknown, stale or strong enemy defenses do not establish an advantage. Miner/refinery totals remain production estimates; spendable cash and fresh battlefield observations must also pass."
+    },
+    "repair": {
+      "enabled": true, "items": ["war_factory", "construction_yard", "tesla_reactor"],
+      "levels": ["yellow", "red"], "min_credits": 1200, "scan_every": 20,
+      "bar_offsets": {"construction_yard": [-14, 39, 108, -20], "war_factory": [-21, 15, 75, -29]},
+      "settle_ms": 300, "min_bar_length": 20, "min_known_bar_length": 12, "cleanup_attempts": 3
+    },
+    "buildings": {
+      "order": [
+        {"item": "tesla_reactor"},
+        {"item": "ore_refinery"},
+        {"item": "barracks"},
+        {"item": "war_factory"},
+        {"item": "ore_refinery", "tanks": 2, "even_when_rich": true, "why": "The 2026-10-09 Korea trial starved after its first attack and did not finish its second refinery until roughly fifteen minutes. Expand after two Rhinos so its free miner and second unloading point fund the first attack and replacements."},
+        {"item": "tesla_reactor", "with": "radar_tower", "why": "Built ahead of time only for the radar it powers."},
+        {"item": "radar_tower", "tanks": 4, "even_when_rich": true, "why": "The radar waits for four tanks. Wall-clock time cannot stand in for production at slower game speeds or across pauses."},
+        {"item": "war_factory", "credits": 6000, "even_when_rich": true, "why": "The 2026-10-08 recovery spent its remaining cash on a second factory while replacing a lost army. Require 6000 surplus credits so this optional factory leaves funds for units and income recovery."},
+        {"item": "tesla_reactor", "with": "battle_lab"},
+        {"item": "battle_lab", "tanks": 10, "credits": 2500, "even_when_rich": true, "high_tech": true},
+        {"item": "tesla_reactor"}
+      ],
+      "why": "An item waits until its gate holds (tanks: that many tanks built, or the game older than or_after; credits: that much to spend), and the rest of the order waits with it (live game 13: the radar, a third refinery, two Tesla Troopers and three Flak Tracks took the money; three Rhinos met the rush).",
+      "rich": 5000,
+      "rich_why": "With more than this to spend every gate opens except even_when_rich ones: the factory cannot spend it fast enough anyway.",
+      "wait_for_next": 20.0,
+      "credit_slack": 200,
+      "tech_reserve": {"items": ["radar_tower", "ore_refinery"], "reserve_tanks": 1, "threat_within": 30, "why": "During raids, a second refinery, radar and its preparatory reactor leave enough credits for one tank. Genuine low-power recovery keeps priority."},
+      "power": "tesla_reactor",
+      "after_order": {"item": "ore_refinery", "up_to": 3, "why": "Once the order is done, a third refinery only when rich (the home ore field runs out early: game 13 mined it out at about 4:30)."},
+      "tech_up": {"items": ["battle_lab"], "tanks": 10, "why": "Only offered when high_tech economy and advantage checks pass. Radar remains basic reconnaissance in the normal build order."}
+    },
+    "units": {
+      "tanks": ["rhino_tank", "apocalypse_tank"],
+      "tank": "rhino_tank",
+      "miners": {
+        "item": "war_miner", "per_refinery": 2, "max": 6, "extra_when_expanding": 0,
+        "after_tanks": 2, "tanks_first_until": null, "save_unless_threat_within": 30,
+        "why": "Two per refinery, without an extra expansion miner. The 2026-10-08 six-Rhino gate left one miner funding the opening and replacements, with long cash stalls after the first attack. Allow more miners after two Rhinos and initial Flak cover, while reserving the earlier second refinery first. Recent attacks keep replenishing defenders ahead of new miners."
+      },
+      "second_refinery": {
+        "after_tanks": 2,
+        "reserve_tanks": 1,
+        "save_unless_threat_within": 30,
+        "why": "While only one refinery stands, the war factory waits until the second one and a tank are paid for (not when enemies are at the base: then tanks come first)."
+      },
+      "heavy_tank": {"item": "apocalypse_tank", "credits": 2500},
+      "siege": {"item": "v3_launcher", "after_tanks": 4, "min_flak": 2, "max": 4, "one_per_tanks": 4, "before_heavy": true, "quiet_seconds": 30, "why": "The live France attack lost its short-range force against the defended base. After a failed attack, prioritize four radar-tier launchers behind a rebuilt Rhino screen, then add one launcher per four cumulative Rhinos so losses do not permanently exhaust siege production. Only produce while the base is quiet and prior tank and Flak production is established. Save for this support before optional advanced units. Sidebar availability remains required; production counts do not prove survivors."},
+      "anti_air": {"item": "flak_track", "after_tanks": 1, "one_per_tanks": 4, "why": "Cover the first Rhino with one Flak Track, then target one per four Rhinos. The live assault spent heavily on tracks and lacked enough ground armor against base defenses. Keep basic mobile anti-air while funding the Rhino screen and siege support. These remain cumulative production targets, not claims about surviving composition."},
+      "base_dogs": {
+        "count": 2,
+        "reserve_tanks": 1,
+        "why": "Two additional dogs stay with home infantry for spy detection and defense against infantry drops. Preserve one tank's funding."
+      },
+      "scouts": {
+        "item": "attack_dog", "count": 2, "hold_others": 25,
+        "why": "Two Attack Dogs first: fast and cheap, they explore the ground around the base and find the enemy (the user's advice, 2026-09-27). Other infantry waits (at most hold_others seconds) until the dogs are grouped as the scout team, so P selects the dogs alone."
+      },
+      "conscripts": {"item": "conscript", "early": 2},
+      "anti_air_infantry": {
+        "item": "flak_trooper", "after_tanks": 2, "one_per_tanks": 1, "max": 12, "credits": 1200,
+        "why": "The 2026-09-30 fifth match survived its first attack but left the infantry lane idle after six Conscripts while another Rocketeer wave approached. Once the observed sidebar offers Flak Troopers, offer basic anti-air infantry before filling Conscripts, after the dog quota and scout-grouping hold. Require 1200 spendable credits for each 300-credit trooper, preserving the next 900-credit Rhino: the 2026-10-08 siege trained seven Flak Troopers while Rhino reinforcements stalled. Target one per tank, capped at twelve cumulative trained troopers. This is basic support, independent of the optional high-tech gate; production totals do not establish survivors."
+      },
+      "troopers": {
+        "items": ["desolator", "conscript"], "credits": 3000, "after_tanks": 8,
+        "why": "Spare money funds an available Desolator only after the tank force, economy and observed advantage are established. If its sidebar icon is absent, skip it. Keep home infantry and dogs out of the assault group; no automatic radiation deployment beside friendly units. Tesla Troopers remain shared Soviet units."
+      },
+      "defenses": {
+        "item": "sentry_gun", "max": 1, "counted": ["sentry_gun", "tesla_coil"], "after_threat_within": 60,
+        "after_tanks": 2, "reserve_tanks": 1, "proactive_count": 1,
+        "front_without_radar": [200, 0],
+        "why": "One cheap Sentry Gun after the factory and two Rhinos: the speed-6 run lost its first defenders to deployed GIs before the old four-Rhino gate provided cover. The next speed-6 run bought a second gun and six Conscripts but still lost the base with only four Rhinos. Keep the first gun and spend the rest on the mobile force and income; never replace that production with Tesla Coil spending."
+      },
+      "queue_two": {"lanes": ["vehicles"], "credits_per_cost": 3, "count": 2, "default_count": 1, "why": "With money to spare two vehicles are queued at once: the factory keeps working while other tabs are served."}
+    },
+    "army": {
+      "strength_unit": "rhino_tank",
+      "infantry_weight": 0.5,
+      "counted_infantry_weight": 0.1,
+      "census": {"every": 20.0, "during_attack": 60.0, "fresh_within": 45.0, "before_attack_within": 10.0},
+      "not_combat": ["war_miner", "engineer", "mcv"],
+      "why": "Army strength is counted in tanks (unit cost over a Rhino's), infantry at half value: six Conscripts count as a third of a tank. A count of the units at home (their health bars) weighs infantry at a tenth."
+    },
+    "attack": {
+      "keep_home_infantry": true,
+      "late_game": 720,
+      "early_min_above_small": 1,
+      "wave_every": 40.0,
+      "wave_gap": 8.0,
+      "siege_every": 12.0,
+      "reinforce_units": 4,
+      "why": "Waves re-target the survivors every wave_every seconds (siege_every while they stand beside enemy buildings), at least wave_gap apart; new units at home join the field army once reinforce_units of them are ready (one at a time they were destroyed on the way). The attack size question decides when the first wave goes; late_game is when its facts say late game."
+    },
+    "battle": {
+      "every": 15.0,
+      "seconds": 12.0,
+      "order_every": 1.6,
+      "after_wave": 3.0,
+      "placement_after_orders": 3,
+      "why": "Between waves the camera stays with the fight for a battle session and gives an order every order_every seconds; it goes home early when the base is attacked, or for a finished building after a few orders (it blocks all construction)."
+    },
+    "defense": {
+      "emergency_miners": {
+        "enabled": true, "team": "4", "group_attempts": 3,
+        "max_defenders": 2, "defender_min_health": 0.5, "min_health": 0.6,
+        "retreat_health": 0.45, "max_seconds": 12, "check_every": 3,
+        "cooldown": 25, "reach": 450, "ore_reach": 700,
+        "why": "Early-rush fallback: group the first refinery's sole vehicle before the factory exists. Only this verified War Miner may help against visually confirmed ground infantry when at most two healthy combat vehicles remain. Require visible gold ore for its return, stop support on low health or timeout, then order harvesting at fresh ore. Ordinary defense and attacks leave miners working; unknown unit types and air-only raids do not qualify."
+      },
+      "repeat": 4.0,
+      "watch_every": 8.0, "watch_rounds": 2,
+      "offer_within": 20,
+      "big_raid_pixels": 150,
+      "big_raid_dots": 8,
+      "session_rounds": 8,
+      "order_every": 1.0,
+      "reach": 600,
+      "why": "Defend is offered for a recent threat. P twice selects owned military across the map so remote defenders can answer a fresh raider target; no selected unit in the current camera view does not prove the army is gone. Offscreen checks preserve visible home infantry before saving the map selection. Recheck the enemy after selection, attack-move within reach for up to session_rounds orders at order_every intervals, and repeat after repeat seconds. The native game acquires targets; color centroids are not verified unit hitboxes. big_raid_pixels or big_raid_dots can interrupt an attack."
+    },
+    "patrol": {
+      "team": "3", "vehicles": 3, "infantry": 1, "reserve_vehicles": 4,
+      "min_credits": 2000, "quiet_seconds": 30, "min_health": 0.75,
+      "requires": ["construction_yard", "ore_refinery", "war_factory", "barracks"],
+      "prefer_transport": true,
+      "check_every": 8, "refresh_every": 40, "damage_drop": 0.1,
+      "retreat_health": 0.5, "retreat_reach": 70, "threat_radius_extra": 6,
+      "route": {"front_reach": 150, "offsets": [[-140, 0], [140, 0], [0, 60]], "max_approaches": 2},
+      "scout": {
+        "min_credits": 4000, "quiet_seconds": 60, "min_health": 0.85,
+        "refinery": "ore_refinery", "min_refineries": 2, "fresh_within": 12,
+        "offsets": [[0, -18], [18, 0], [0, 18], [-18, 0]],
+        "min_distance": 6, "max_distance": 24, "enemy_base_distance": 24
+      },
+      "why": "Reuse a verified healthy squad without buying replacements, leaving a home vehicle reserve. Patrol a finite route, check for contact or damage, retreat below retreat_health and refresh only when healthy and the reserve is freshly counted. Nearby scouting needs surplus credits, refineries and a quiet base. Route and retreat reaches are tactical pixels; scout distances and threat_radius_extra are radar pixels."
+    },
+    "intel": {
+      "scout_team": "2",
+      "explore": {
+        "route": [[-330, -250], [0, -320], [380, -320], [380, 200], [0, 320], [-380, 200]],
+        "leg_seconds": 4.0,
+        "check_every": 4, "return_offset": [0, 120], "return_min_health": 0.5,
+        "deadline": {"min_seconds": 60, "max_seconds": 180, "leg_multiplier": 5},
+        "why": "Queue a finite route to the home view's edges, then return. The old short loop missed the northeastern gems after the starting ore ran out. Waypoints release the army task lane while dogs travel; leg_seconds sets the arrival deadline, and fresh observations must verify departure and return."
+      },
+      "scout_patience": 90,
+      "look_again": {"enemy_base": 60, "army": 30},
+      "why": "Only the verified dog scout team may scout or receive a scout return order. Missing scouts must never select the main combat force. A scout that found nothing after scout_patience seconds is lost; a look is recent for look_again seconds."
+    }
+  }
+}

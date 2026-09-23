@@ -1,4 +1,6 @@
-"""Bounded action selection through the existing SystemOne HTTP API."""
+"""Bounded action selection through the existing SystemX HTTP API."""
+
+from model_config import MODEL_NAME
 
 import os
 import time
@@ -8,11 +10,11 @@ import httpx
 from .planner import candidates
 
 
-class VonDecision:
+class SystemOneDecision:
     def __init__(self, base_url="http://127.0.0.1:8000", timeout=30, client=None):
         headers = {}
-        if os.environ.get("VON_API_KEY"):
-            headers["Authorization"] = "Bearer " + os.environ["VON_API_KEY"]
+        if os.environ.get("SYSTEMX_API_KEY"):
+            headers["Authorization"] = "Bearer " + os.environ["SYSTEMX_API_KEY"]
         self.client = client or httpx.Client(base_url=base_url.rstrip("/"), timeout=timeout, headers=headers)
 
     def close(self):
@@ -26,21 +28,21 @@ class VonDecision:
         while True:
             remaining = deadline - time.monotonic()
             if remaining <= 0:
-                raise TimeoutError(f"Von did not become ready within {timeout:g}s. Last state: {last_message}. Check the server console.")
+                raise TimeoutError(f"System One did not become ready within {timeout:g}s. Last state: {last_message}. Check the server console.")
             ready = False
             try:
                 # /health reports loading normally, without filling server logs with 503s.
                 response = self.client.get("/health", timeout=min(3, remaining))
                 response.raise_for_status()
                 status = response.json()
-                if status.get("model") != "von-option-marker":
-                    raise RuntimeError("The configured endpoint is not the expected Von server.")
+                if status.get("model") != MODEL_NAME:
+                    raise RuntimeError("The configured endpoint is not the expected System One server.")
                 if status.get("status") == "failed":
-                    raise RuntimeError("Von initialization failed. Inspect the server console for the cause.")
+                    raise RuntimeError("System One initialization failed. Inspect the server console for the cause.")
                 ready = status.get("ready") is True and status.get("status") == "ready"
                 if not ready and status.get("status") != "loading":
                     raise RuntimeError("The server returned an unrecognized readiness state.")
-                message = "Von ready; opening Minesweeper" if ready else "Loading AI model and warming up"
+                message = "System One ready; opening Minesweeper" if ready else "Loading AI model and warming up"
             except httpx.TransportError:
                 message = f"Waiting for server at {self.client.base_url}; launch start.bat"
             now = time.monotonic()
@@ -69,7 +71,7 @@ class VonDecision:
             for option in options
         }
         request = {
-            "model": "von-option-marker", "state": state,
+            "model": MODEL_NAME, "state": state,
             "questions": {"move": {
                 "type": "choice",
                 "instructions": "Choose a move to solve Minesweeper. Prefer proved safe actions. Among safe reveals prefer exposing useful new clues. If all are guesses, hidden mines cannot be known: choose a promising exploration, not an imagined certainty.",
@@ -83,8 +85,8 @@ class VonDecision:
         key = result.get("answers", {}).get("move", {}).get("choice")
         selected = next((option for option in options if option.id == key), None)
         if selected is None:
-            raise ValueError("Von returned an action outside the current candidate list.")
-        return selected, {"source": "von", "latency_ms": result.get("latency_ms"),
+            raise ValueError("System One returned an action outside the current candidate list.")
+        return selected, {"source": "systemone", "latency_ms": result.get("latency_ms"),
                           "answer": result["answers"]["move"]}
 
 

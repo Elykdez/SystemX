@@ -23,10 +23,10 @@ class Capture:
         self.sequence = 0
         self.source = MSS()
 
-    def read(self, region=None):
+    def read(self, region=None, foreground=True):
         geometry = self.target.geometry()
         g = geometry
-        self.target.check_point(g.x + g.width / 2, g.y + g.height / 2, foreground=True)
+        self.target.check_point(g.x + g.width / 2, g.y + g.height / 2, foreground=foreground)
         screen = self.source.monitors[0]
         if (g.x < screen['left'] or g.y < screen['top'] or
                 g.x + g.width > screen['left'] + screen['width'] or

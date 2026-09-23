@@ -3,6 +3,7 @@
 import ctypes as ct
 from ctypes import wintypes as wt
 import threading
+import time
 
 from .target import user32, DesktopPause
 
@@ -42,8 +43,13 @@ class MouseInput(ct.Structure):
                 ('dwFlags', wt.DWORD), ('time', wt.DWORD), ('dwExtraInfo', ct.c_size_t)]
 
 
+class KeybdInput(ct.Structure):
+    _fields_ = [('wVk', wt.WORD), ('wScan', wt.WORD), ('dwFlags', wt.DWORD),
+                ('time', wt.DWORD), ('dwExtraInfo', ct.c_size_t)]
+
+
 class InputUnion(ct.Union):
-    _fields_ = [('mi', MouseInput)]
+    _fields_ = [('mi', MouseInput), ('ki', KeybdInput)]
 
 
 class Input(ct.Structure):
@@ -52,6 +58,68 @@ class Input(ct.Structure):
 
 user32.SendInput.argtypes = [wt.UINT, ct.POINTER(Input), ct.c_int]
 user32.SendInput.restype = wt.UINT
+user32.MapVirtualKeyW.argtypes = [wt.UINT, wt.UINT]
+user32.MapVirtualKeyW.restype = wt.UINT
+
+VK = {'backspace': 0x08, 'tab': 0x09, 'enter': 0x0D, 'shift': 0x10, 'ctrl': 0x11, 'alt': 0x12,
+      'pause': 0x13, 'esc': 0x1B, 'space': 0x20, 'pageup': 0x21, 'pagedown': 0x22, 'end': 0x23,
+      'home': 0x24, 'left': 0x25, 'up': 0x26, 'right': 0x27, 'down': 0x28, 'insert': 0x2D, 'delete': 0x2E,
+      **{str(d): 0x30 + d for d in range(10)}, **{chr(c): c - 32 for c in range(ord('a'), ord('z') + 1)},
+      **{f'num{d}': 0x60 + d for d in range(10)}, **{f'f{n}': 0x6F + n for n in range(1, 13)}}
+EXTENDED = {'pageup', 'pagedown', 'end', 'home', 'left', 'up', 'right', 'down', 'insert', 'delete'}
+MODIFIERS = ('ctrl', 'shift', 'alt')
+
+
+def key_event(name, up=False):
+    """One keyboard INPUT with virtual key plus scan code; browsers read both."""
+    if name not in VK:
+        raise ValueError(f'Unsupported key: {name}')
+    vk = VK[name]
+    flags = (0x0001 if name in EXTENDED else 0) | (0x0002 if up else 0)
+    return Input(1, InputUnion(ki=KeybdInput(vk, user32.MapVirtualKeyW(vk, 0), flags, 0, 0)))
+
+
+def chord_events(keys):
+    """Press modifiers first and release in reverse order: ('ctrl', '1') -> 4 events."""
+    keys = list(keys)
+    return [key_event(k) for k in keys] + [key_event(k, up=True) for k in reversed(keys)]
+
+
+def mouse_events(point, desktop, button=None, move=True):
+    """Absolute move to a desktop point and an optional paired button click."""
+    events = []
+    if move:
+        dx, dy = absolute_point(*point, desktop)
+        events.append(Input(0, InputUnion(MouseInput(dx, dy, 0, 0xC001, 0, 0))))
+    if button is not None:
+        down, up = {'left': (2, 4), 'right': (8, 16), 'middle': (32, 64)}[button]
+        events += [Input(0, InputUnion(MouseInput(0, 0, 0, down, 0, 0))),
+                   Input(0, InputUnion(MouseInput(0, 0, 0, up, 0, 0)))]
+    return events
+
+
+def relative_move_event(dx, dy):
+    return Input(0, InputUnion(MouseInput(int(dx), int(dy), 0, 0x0001, 0, 0)))
+
+
+def send(events):
+    """Send a batch; returns the number Windows accepted."""
+    if not events:
+        return 0
+    batch = (Input * len(events))(*events)
+    return user32.SendInput(len(events), batch, ct.sizeof(Input))
+
+
+def release_all(keys=MODIFIERS, buttons=('left', 'right', 'middle')):
+    """Best-effort cleanup after cancellation: key-ups and button-ups are harmless when not held."""
+    events = [key_event(k, up=True) for k in keys]
+    events += [Input(0, InputUnion(MouseInput(0, 0, 0, {'left': 4, 'right': 16, 'middle': 64}[b], 0, 0)))
+               for b in buttons]
+    return send(events)
+
+
+def virtual_desktop():
+    return tuple(user32.GetSystemMetrics(i) for i in (76, 77, 78, 79))
 
 
 def absolute_point(x, y, desktop):
@@ -66,6 +134,12 @@ def cursor():
     if not user32.GetCursorPos(ct.byref(point)):
         raise DesktopPause("Cannot read pointer position.")
     return point.x, point.y
+
+
+def clip_rect():
+    rect = wt.RECT()
+    user32.GetClipCursor(ct.byref(rect))
+    return rect.left, rect.top, rect.right, rect.bottom
 
 
 class Mouse:
@@ -94,6 +168,10 @@ class Mouse:
     def click(self, x, y, button, geometry, generation, park=None):
         if button not in ('left', 'right'):
             raise ValueError("Only left/right clicks are supported.")
+        self.move(x, y, geometry, generation)
+        # Frame-polled games need movement, button edges, and parking in separate frames.
+        time.sleep(.05)
+        down, up = (2, 4) if button == 'left' else (8, 16)
         with self.gate.lock:
             if not self.gate.allowed(generation):
                 raise DesktopPause("Action cancelled.")
@@ -104,23 +182,20 @@ class Mouse:
                 raise DesktopPause("Pointer moved. Focus the game and resume when ready.")
             if any(user32.GetAsyncKeyState(key) & 0x8000 for key in (1, 2, 4, 16, 17, 18)):
                 raise DesktopPause("Release mouse buttons and modifier keys before resuming.")
-            desktop = tuple(user32.GetSystemMetrics(i) for i in (76, 77, 78, 79))
-            dx, dy = absolute_point(x, y, desktop)
-            down, up = (2, 4) if button == 'left' else (8, 16)
-            events = [Input(0, InputUnion(MouseInput(dx, dy, 0, 0xC001, 0, 0))),
-                      Input(0, InputUnion(MouseInput(0, 0, 0, down, 0, 0))),
-                      Input(0, InputUnion(MouseInput(0, 0, 0, up, 0, 0)))]
-            if park is not None:
-                self.target.check_point(*park, foreground=True)
-                px, py = absolute_point(*park, desktop)
-                events.append(Input(0, InputUnion(MouseInput(px, py, 0, 0xC001, 0, 0))))
-            batch = (Input * len(events))(*events)
-            sent = user32.SendInput(len(events), batch, ct.sizeof(Input))
-            if sent != len(events):
-                release = Input(0, InputUnion(MouseInput(0, 0, 0, up, 0, 0)))
-                user32.SendInput(1, ct.byref(release), ct.sizeof(Input))
+            pressed = Input(0, InputUnion(MouseInput(0, 0, 0, down, 0, 0)))
+            sent = user32.SendInput(1, ct.byref(pressed), ct.sizeof(Input))
+        try:
+            if sent != 1:
                 raise DesktopPause("Windows did not accept the complete click. Input stopped.")
-            self.expected_cursor = cursor()
+            time.sleep(.05)
+        finally:
+            released = Input(0, InputUnion(MouseInput(0, 0, 0, up, 0, 0)))
+            if user32.SendInput(1, ct.byref(released), ct.sizeof(Input)) != 1:
+                raise DesktopPause("Windows rejected button release. Input stopped.")
+        time.sleep(.05)
+        if park is not None:
+            self.move(*park, geometry, generation)
+            # The player's visual postcondition waits for cursor/board animation.
 
 
 class Hotkeys:

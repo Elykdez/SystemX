@@ -1,12 +1,17 @@
 # Minesweeper player
 
+Terminology: [System 1 (System One)](../../docs/system-one-model.md) is the
+decision-model role, currently StartLux through the HTTP API. This browser mode
+reads visible DOM labels; the [desktop mode](DESKTOP.md) uses OpenCV as System 0.
+Game logic constructs candidates and the controller executes and verifies choices.
+
 There are two entry points: this page describes the existing web/Playwright
 player; the [desktop player](DESKTOP.md) reads pixels and controls a selected
 Windows game window. Each has its own optional setup batch file.
 
 This addon controls a separately hosted Minesweeper game at a URL you enter.
 It reads visible cell labels and
-bounding boxes, asks the SystemOne server for decisions, and sends normal
+bounding boxes, asks the System One model for decisions through the current SystemX server, and sends normal
 left/right mouse clicks through Python Playwright and installed Google Chrome.
 
 This is a Minesweeper-specific addon. It does not alter the core server, model
@@ -18,7 +23,7 @@ the player, not the game's source or the model server.
 
 | Component | Start | Stop |
 | --- | --- | --- |
-| Model server | `start.bat` in the SystemOne root | Ctrl+C in its console; this releases model VRAM. |
+| Model server | `start-server.bat` in this folder (one int8 worker) | Ctrl+C in its console; this releases model VRAM. |
 | Minesweeper player | `play-minesweeper.bat` in this folder | `q` + Enter or Ctrl+C in the player console. |
 | Game webpage | Opened by the player in Chrome | Closing the player closes its browser; the remote game host is unaffected. |
 
@@ -32,7 +37,7 @@ and API details.
 1. On a fresh installation, double-click the root `setup.bat`, then double-click
    `addons/minesweeper/setup-minesweeper.bat`. Google Chrome must already be
    installed. This working copy already has the dependencies.
-2. Double-click the root `start.bat` and wait for the Von server to report ready.
+2. Double-click `addons/minesweeper/start-server.bat` and wait for the SystemX server  to report ready.
 3. Open `addons/minesweeper` and double-click `play-minesweeper.bat`.
 4. Enter the full game URL, including `http://` or `https://`, when prompted.
 5. Once the board opens, type `r` and press Enter to start.
@@ -72,11 +77,12 @@ Type a command in the player console followed by Enter:
 Input stops on a win, loss, step limit, model error, contradictory observation,
 obscured target, or missing click result. There is no automatic rematch. After
 normal completion the browser stays open until `q`; `--autoplay` closes it when
-finished. Closing the player browser also ends control. The separate Von server
+finished. Closing the player browser also ends control. The separate SystemX server
 keeps running until its console is stopped, retaining its model VRAM while idle.
 
 ```powershell
-Set-Location E:\Workspace\Python\SystemOne\addons\minesweeper
+# From your SystemX checkout root:
+Set-Location ./addons/minesweeper
 .\play-minesweeper.bat --difficulty beginner --autoplay
 .\play-minesweeper.bat --difficulty intermediate --delay 0.5 --max-steps 500
 .\play-minesweeper.bat --server http://127.0.0.1:8001
@@ -84,7 +90,7 @@ Set-Location E:\Workspace\Python\SystemOne\addons\minesweeper
 .\play-minesweeper.bat --url "https://your-host/apps/minesweeper/"
 ```
 
-`von` is the default policy. `logic` is an explicit CPU-only comparison mode
+`startlux` is the default policy. `logic` is an explicit CPU-only comparison mode
 requiring no model server. Difficulty options are `beginner`, `intermediate`,
 and `expert`; only Beginner gameplay has been live-verified. There is no default
 game URL: the launcher prompts before connecting to the model server or opening
@@ -103,13 +109,13 @@ websites may need a different observer. Default delay: 0.35 seconds.
    displayed total mine count. Existing flags are assumed correct. When no
    move is proved, candidates are explicitly uncertain guesses.
 4. `decision.py` sends visible state and up to 12 candidates to `/v1/systemone`.
-   Von chooses between multiple candidates. A single forced move skips the
+   System One chooses between multiple candidates. A single forced move skips the
    model call. Model failures never silently switch to a heuristic choice.
 5. `session.py` re-observes before acting; changed state or geometry cancels the
    move. `browser_driver.py` hit-tests the cell center before mouse input and
    waits for an observable result. Geometry movement alone is not success.
 
-Von ranks the candidate actions; exact Minesweeper deductions belong to this
+System One ranks the candidate actions; exact Minesweeper deductions belong to this
 addon. Guesses can lose. This does not calculate exact probabilities for every
 ambiguous board. There is no continuous inference or extra vision model.
 
@@ -120,30 +126,15 @@ under the root `.cache/minesweeper/<timestamp>`. Logs include bounding boxes, vi
 before/after states, decisions, and their model/logic source.
 
 ```powershell
-Set-Location E:\Workspace\Python\SystemOne
+# Run from your SystemX checkout root.
 & ./.venv/Scripts/python.exe -m pytest addons/minesweeper/tests -q
 & ./.venv/Scripts/python.exe -m addons.minesweeper --help
 & ./.venv/Scripts/python.exe -m addons.minesweeper.recommend observation.json
 ```
 
-On 2026-09-23, a live check on the actual site in Chrome used the real local CUDA
-Von server. After an initial inspection/opening click, the addon completed 19
-moves and won Beginner: 18 Von selections and one forced move. A separate board
-verified the loss presentation. The renamed parser recognized the still-open
-winning board and returned no further action. This is functional verification,
-not a win-rate benchmark.
-
-The live browser transport was the ChatGPT Chrome extension. The standalone
-Playwright launcher has CLI and unit coverage, but its separate-profile launch
-has not received a full end-to-end gameplay test. The complete project test run
-passes 105 tests without loading the model. Tests cover deduction safety,
-observation parsing, terminal states, invalid model choices, stale geometry,
-blocked targets, pause/stop commands, and stalled input.
-
-Startup verification after the cache-first launcher fix: the actual CUDA model
-loaded and warmed up in 8.36 seconds, and the player recognized readiness. The
-test server was then stopped to release GPU memory. This timing is one local
-measurement, not a startup-time guarantee.
+Current desktop integration results are recorded in the
+[validation report](../../docs/minesweeper-validation.md). Model-specific
+measurements apply only to the configuration recorded in that report.
 
 ## Other games
 
@@ -153,5 +144,5 @@ no generic game framework to conform to.
 
 An AABB identifies location, not object identity. Here accessible labels supply
 identity. Warcraft would need different perception, tracked state over time,
-action generation, and evaluation. Von currently accepts text/structured state,
+action generation, and evaluation. StartLux currently accepts text/structured state,
 not screenshots directly.

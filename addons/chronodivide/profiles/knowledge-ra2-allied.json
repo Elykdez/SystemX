@@ -1,0 +1,382 @@
+{
+  "version": 1,
+  "faction": "allied",
+  "note": "RA2 Allied knowledge. Costs and prerequisites are checked against the live sidebar; availability remains authoritative.",
+  "opening_anchors": [
+    "power_plant",
+    "ore_refinery",
+    "barracks"
+  ],
+  "refinery_gates": [
+    "war_factory",
+    "airforce_command"
+  ],
+  "factory_loss": {
+    "survivors": ["harrier"]
+  },
+  "radar_loss": {
+    "building": "airforce_command",
+    "gates": {
+      "infantry": ["rocketeer"],
+      "vehicles": ["harrier"]
+    },
+    "anchors": {
+      "infantry": ["gi", "engineer", "attack_dog"],
+      "vehicles": ["chrono_miner", "grizzly_tank", "ifv"]
+    }
+  },
+  "technology_loss": {
+    "building": "battle_lab",
+    "gates": {
+      "infantry": ["tanya", "chrono_legionnaire"],
+      "vehicles": ["mirage_tank", "prism_tank"]
+    },
+    "anchors": {
+      "infantry": ["gi", "engineer", "attack_dog"],
+      "vehicles": ["chrono_miner", "grizzly_tank", "ifv"]
+    }
+  },
+  "lanes": {
+    "buildings": "Structures tab: one building is constructed at a time, then placed.",
+    "defenses": "Defense tab: one defensive structure at a time, then placed.",
+    "infantry": "Barracks queue: trains infantry one after another.",
+    "vehicles": "War factory queue: builds vehicles one after another."
+  },
+  "items": {
+    "power_plant": {
+      "name": "Power Plant",
+      "lane": "buildings",
+      "cost": 800,
+      "requires": [
+        "construction_yard"
+      ],
+      "role": "Supplies Allied power.",
+      "power": 200
+    },
+    "ore_refinery": {
+      "name": "Allied Ore Refinery",
+      "lane": "buildings",
+      "cost": 2000,
+      "requires": [
+        "power_plant"
+      ],
+      "role": "Processes ore and supplies one Chrono Miner.",
+      "power": -50
+    },
+    "barracks": {
+      "name": "Allied Barracks",
+      "lane": "buildings",
+      "cost": 500,
+      "requires": [
+        "power_plant"
+      ],
+      "role": "Trains infantry.",
+      "power": -10
+    },
+    "war_factory": {
+      "name": "Allied War Factory",
+      "lane": "buildings",
+      "cost": 2000,
+      "requires": [
+        "ore_refinery",
+        "barracks"
+      ],
+      "role": "Builds vehicles.",
+      "power": -25
+    },
+    "airforce_command": {
+      "name": "Air Force Command Headquarters",
+      "lane": "buildings",
+      "cost": 1000,
+      "requires": [
+        "ore_refinery"
+      ],
+      "role": "Enables radar and aircraft technology.",
+      "power": -50
+    },
+    "battle_lab": {
+      "name": "Allied Battle Lab",
+      "lane": "buildings",
+      "cost": 2000,
+      "requires": [
+        "war_factory",
+        "airforce_command"
+      ],
+      "role": "Unlocks Mirage and Prism tanks.",
+      "placement": "rear",
+      "power": -100
+    },
+    "service_depot": {
+      "name": "Allied Service Depot",
+      "lane": "buildings",
+      "cost": 800,
+      "requires": [
+        "war_factory"
+      ],
+      "role": "Repairs vehicles and unlocks MCV.",
+      "power": -25
+    },
+    "naval_shipyard": {
+      "name": "Allied Naval Shipyard",
+      "lane": "buildings",
+      "cost": 1000,
+      "requires": [
+        "ore_refinery"
+      ],
+      "role": "Naval production; needs water.",
+      "power": -20
+    },
+    "ore_purifier": {
+      "name": "Ore Purifier",
+      "lane": "buildings",
+      "cost": 2500,
+      "requires": [
+        "battle_lab"
+      ],
+      "role": "Improves ore income.",
+      "power": -200
+    },
+    "spy_satellite": {
+      "name": "Spy Satellite Uplink",
+      "lane": "defenses",
+      "cost": 1500,
+      "requires": [
+        "battle_lab"
+      ],
+      "role": "Reveals the battlefield.",
+      "power": -100
+    },
+    "pillbox": {
+      "name": "Pillbox",
+      "lane": "defenses",
+      "cost": 500,
+      "requires": [
+        "barracks"
+      ],
+      "role": "Anti-infantry cover.",
+      "power": 0
+    },
+    "patriot": {
+      "name": "Patriot Missile",
+      "lane": "defenses",
+      "cost": 1000,
+      "requires": [
+        "barracks"
+      ],
+      "role": "Static anti-air defense.",
+      "power": -50
+    },
+    "prism_tower": {
+      "name": "Prism Tower",
+      "lane": "defenses",
+      "cost": 1500,
+      "requires": [
+        "airforce_command"
+      ],
+      "role": "Ground defense requiring power.",
+      "power": -75
+    },
+    "grand_cannon": {
+      "name": "Grand Cannon",
+      "lane": "defenses",
+      "cost": 2000,
+      "requires": [
+        "airforce_command"
+      ],
+      "role": "French long-range ground defense.",
+      "power": -100
+    },
+    "allied_wall": {
+      "name": "Allied Wall",
+      "lane": "defenses",
+      "cost": 100,
+      "requires": [
+        "construction_yard"
+      ],
+      "role": "Wall segment.",
+      "power": 0
+    },
+    "gap_generator": {
+      "name": "Gap Generator",
+      "lane": "defenses",
+      "cost": 1000,
+      "requires": [
+        "battle_lab"
+      ],
+      "role": "Conceals nearby terrain.",
+      "power": -100
+    },
+    "chronosphere": {
+      "name": "Chronosphere",
+      "lane": "defenses",
+      "cost": 2500,
+      "requires": [
+        "battle_lab"
+      ],
+      "role": "Teleport superweapon.",
+      "power": -200
+    },
+    "weather_control": {
+      "name": "Weather Control Device",
+      "lane": "defenses",
+      "cost": 5000,
+      "requires": [
+        "battle_lab"
+      ],
+      "role": "Storm superweapon.",
+      "power": -200
+    },
+    "gi": {
+      "name": "GI",
+      "lane": "infantry",
+      "cost": 200,
+      "requires": [
+        "barracks"
+      ],
+      "role": "Deployable ground infantry.",
+      "short": "GI"
+    },
+    "attack_dog": {
+      "name": "Allied Attack Dog",
+      "lane": "infantry",
+      "cost": 200,
+      "requires": [
+        "barracks"
+      ],
+      "role": "Infantry killer and scout.",
+      "short": "Dog"
+    },
+    "engineer": {
+      "name": "Allied Engineer",
+      "lane": "infantry",
+      "cost": 500,
+      "requires": [
+        "barracks"
+      ],
+      "role": "Captures and repairs buildings.",
+      "short": "Engineer"
+    },
+    "rocketeer": {
+      "name": "Rocketeer",
+      "lane": "infantry",
+      "cost": 600,
+      "requires": [
+        "airforce_command"
+      ],
+      "role": "Flying anti-ground infantry.",
+      "short": "Rocketeer"
+    },
+    "spy": {
+      "name": "Spy",
+      "lane": "infantry",
+      "cost": 1000,
+      "requires": [
+        "airforce_command"
+      ],
+      "role": "Infiltration specialist.",
+      "short": "Spy"
+    },
+    "tanya": {
+      "name": "Tanya",
+      "lane": "infantry",
+      "cost": 1000,
+      "requires": [
+        "battle_lab"
+      ],
+      "role": "Commando.",
+      "short": "Tanya"
+    },
+    "chrono_legionnaire": {
+      "name": "Chrono Legionnaire",
+      "lane": "infantry",
+      "cost": 1500,
+      "requires": [
+        "battle_lab"
+      ],
+      "role": "Teleporting infantry.",
+      "short": "Legionnaire"
+    },
+    "chrono_miner": {
+      "name": "Chrono Miner",
+      "lane": "vehicles",
+      "cost": 1400,
+      "requires": [
+        "war_factory"
+      ],
+      "role": "Unarmed miner; teleports back when full.",
+      "short": "Miner"
+    },
+    "grizzly_tank": {
+      "name": "Grizzly Tank",
+      "lane": "vehicles",
+      "cost": 700,
+      "requires": [
+        "war_factory"
+      ],
+      "role": "Early mobile ground armor.",
+      "short": "Grizzly"
+    },
+    "ifv": {
+      "name": "IFV",
+      "lane": "vehicles",
+      "cost": 600,
+      "requires": [
+        "war_factory"
+      ],
+      "role": "Empty IFV supplies missile anti-air.",
+      "short": "IFV",
+      "cargo": true
+    },
+    "mirage_tank": {
+      "name": "Mirage Tank",
+      "lane": "vehicles",
+      "cost": 1000,
+      "requires": [
+        "battle_lab"
+      ],
+      "role": "Camouflaged anti-unit tank.",
+      "short": "Mirage"
+    },
+    "prism_tank": {
+      "name": "Prism Tank",
+      "lane": "vehicles",
+      "cost": 1200,
+      "requires": [
+        "battle_lab"
+      ],
+      "role": "Long-range siege and area damage.",
+      "short": "Prism"
+    },
+    "harrier": {
+      "name": "Harrier",
+      "lane": "vehicles",
+      "cost": 1200,
+      "requires": [
+        "airforce_command"
+      ],
+      "role": "Ground strike aircraft.",
+      "short": "Harrier"
+    },
+    "nighthawk": {
+      "name": "Nighthawk Transport",
+      "lane": "vehicles",
+      "cost": 1000,
+      "requires": [
+        "war_factory"
+      ],
+      "role": "Air transport.",
+      "short": "Nighthawk",
+      "cargo": true
+    },
+    "mcv": {
+      "name": "Allied MCV",
+      "lane": "vehicles",
+      "cost": 3000,
+      "requires": [
+        "service_depot"
+      ],
+      "role": "Deploys a construction yard.",
+      "short": "MCV"
+    }
+  }
+}

@@ -1,4 +1,4 @@
-"""Benchmark saved visual observations and optional real Von requests; never sends input."""
+"""Benchmark saved visual observations and optional real System One requests; never sends input."""
 
 import argparse
 import json
@@ -13,7 +13,7 @@ from desktop.capture import Frame
 from desktop.input import Gate
 from desktop.target import Geometry
 from addons.minesweeper.desktop_driver import DesktopDriver
-from addons.minesweeper.decision import VonDecision, choose_move
+from addons.minesweeper.decision import SystemOneDecision, choose_move
 from addons.minesweeper.visual.recognition import Grid, Profile, recognize
 
 
@@ -51,7 +51,7 @@ def main():
         uncached.append((time.perf_counter() - start) * 1000)
     profile.classify = classify
     profile._classifications.clear()
-    brain = VonDecision(args.server) if args.server else None
+    brain = SystemOneDecision(args.server) if args.server else None
     try:
         for image in images:
             start = time.perf_counter()

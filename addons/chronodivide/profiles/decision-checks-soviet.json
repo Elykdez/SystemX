@@ -1,0 +1,1052 @@
+{
+  "version": 1,
+  "about": "Soviet decision-check fixtures and expected answers; evaluation data, not runtime policy. Scenario structures/units override individual defaults; null removes an entry. Optional census supplies observed tanks (weighted army strength), healthy_vehicles and age in seconds; null or omission means no census. Expected null means no decision/action is offered, not the named nothing option.",
+  "canvas": [
+    1024,
+    768
+  ],
+  "clock": 10000.0,
+  "radar": {
+    "online": true,
+    "bounds": [
+      886,
+      48,
+      991,
+      157
+    ],
+    "view": [
+      913,
+      80,
+      930,
+      108
+    ],
+    "own": [
+      [
+        48,
+        [
+          914,
+          92
+        ]
+      ]
+    ],
+    "enemy": [],
+    "explored_share": 0.16,
+    "origin": [
+      869,
+      47
+    ]
+  },
+  "radar_home": [
+    914,
+    92
+  ],
+  "enemy_contacts": [
+    [
+      30,
+      [
+        971,
+        108
+      ]
+    ]
+  ],
+  "look": {
+    "point": [
+      971,
+      108
+    ],
+    "summary": {
+      "enemy_objects": 5,
+      "enemy_pixels": 500,
+      "own_objects": 4,
+      "shroud": 0.1
+    }
+  },
+  "scout_target": [
+    963,
+    113
+  ],
+  "threat": {
+    "point": [
+      300,
+      300
+    ],
+    "pixels": 120
+  },
+  "campaign": {
+    "waves": 2,
+    "last_wave_age": 20,
+    "kind": "enemy",
+    "posture": "attack"
+  },
+  "defaults": {
+    "credits": 3000,
+    "threat": null,
+    "campaign": null,
+    "radar": true,
+    "enemy": false,
+    "attack_size": 7,
+    "minutes": 6,
+    "looked_base": null,
+    "looked_army": null,
+    "scout": null,
+    "failures": 0,
+    "strength": null,
+    "scouts": false,
+    "explored": false,
+    "power": {
+      "level": "ok"
+    },
+    "structures": {
+      "construction_yard": 1,
+      "tesla_reactor": 2,
+      "barracks": 1,
+      "ore_refinery": 2,
+      "war_factory": 1
+    },
+    "units": {
+      "war_miner": 0,
+      "rhino_tank": 0,
+      "flak_track": 0,
+      "conscript": 0,
+      "attack_dog": 0
+    }
+  },
+  "cases": {
+    "strategy": [
+      {
+        "name": "opening, one refinery",
+        "scenario": {
+          "structures": {
+            "ore_refinery": 1
+          }
+        },
+        "expected": {
+          "objective": [
+            "expand_economy"
+          ],
+          "posture": [
+            "gather"
+          ]
+        }
+      },
+      {
+        "name": "small army, economy fine",
+        "scenario": {
+          "credits": 900,
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": {
+          "objective": [
+            "build_army"
+          ],
+          "posture": [
+            "gather"
+          ]
+        }
+      },
+      {
+        "name": "attack size reached",
+        "scenario": {
+          "credits": 900,
+          "units": {
+            "rhino_tank": 9,
+            "war_miner": 2
+          }
+        },
+        "expected": {
+          "objective": [
+            "build_army"
+          ],
+          "posture": [
+            "attack"
+          ]
+        }
+      },
+      {
+        "name": "attack size reached, enemy seen",
+        "scenario": {
+          "credits": 900,
+          "enemy": true,
+          "units": {
+            "rhino_tank": 10,
+            "war_miner": 2
+          }
+        },
+        "expected": {
+          "objective": [
+            "build_army"
+          ],
+          "posture": [
+            "attack"
+          ]
+        }
+      },
+      {
+        "name": "attack under way, few new units",
+        "scenario": {
+          "credits": 900,
+          "campaign": 60,
+          "enemy": true,
+          "units": {
+            "rhino_tank": 10,
+            "war_miner": 2
+          }
+        },
+        "expected": {
+          "objective": [
+            "build_army"
+          ],
+          "posture": [
+            "attack"
+          ]
+        }
+      },
+      {
+        "name": "enemies in the base now",
+        "scenario": {
+          "credits": 900,
+          "threat": 2,
+          "units": {
+            "rhino_tank": 4,
+            "war_miner": 2
+          }
+        },
+        "expected": {
+          "objective": [
+            "build_army"
+          ],
+          "posture": [
+            "defend"
+          ]
+        }
+      },
+      {
+        "name": "enemies in the base, big army",
+        "scenario": {
+          "credits": 900,
+          "threat": 1,
+          "units": {
+            "rhino_tank": 9,
+            "war_miner": 2
+          }
+        },
+        "expected": {
+          "objective": [
+            "build_army"
+          ],
+          "posture": [
+            "defend"
+          ]
+        }
+      },
+      {
+        "name": "raid over 15 s ago, army ready",
+        "scenario": {
+          "credits": 900,
+          "threat": 15,
+          "units": {
+            "rhino_tank": 9,
+            "war_miner": 2
+          }
+        },
+        "expected": {
+          "objective": [
+            "build_army"
+          ],
+          "posture": [
+            "attack"
+          ]
+        }
+      },
+      {
+        "name": "too few miners",
+        "scenario": {
+          "credits": 2500,
+          "units": {
+            "rhino_tank": 4
+          }
+        },
+        "expected": {
+          "objective": [
+            "expand_economy"
+          ],
+          "posture": [
+            "gather"
+          ]
+        }
+      },
+      {
+        "name": "credits piling up without observed advantage",
+        "scenario": {
+          "credits": 9000,
+          "units": {
+            "rhino_tank": 4,
+            "war_miner": 2
+          }
+        },
+        "expected": {
+          "objective": [
+            "build_army"
+          ],
+          "posture": [
+            "gather"
+          ]
+        }
+      },
+      {
+        "name": "credits piling up with fresh advantage",
+        "scenario": {
+          "credits": 9000,
+          "enemy": true,
+          "looked_base": 0,
+          "strength": "medium",
+          "census": {
+            "age": 0,
+            "tanks": 12,
+            "healthy_vehicles": 12
+          },
+          "units": {
+            "rhino_tank": 12,
+            "flak_track": 6,
+            "war_miner": 2
+          }
+        },
+        "expected": {
+          "objective": [
+            "tech_up"
+          ],
+          "posture": [
+            "attack"
+          ]
+        }
+      },
+      {
+        "name": "stale army census blocks tech",
+        "scenario": {
+          "credits": 9000,
+          "enemy": true,
+          "looked_base": 0,
+          "strength": "medium",
+          "census": {
+            "age": 46,
+            "tanks": 12,
+            "healthy_vehicles": 12
+          },
+          "units": {
+            "rhino_tank": 12,
+            "flak_track": 6,
+            "war_miner": 2
+          }
+        },
+        "expected": {
+          "objective": [
+            "build_army"
+          ],
+          "posture": [
+            "attack"
+          ]
+        }
+      },
+      {
+        "name": "stale enemy observation blocks tech",
+        "scenario": {
+          "credits": 9000,
+          "enemy": true,
+          "looked_base": 46,
+          "strength": "medium",
+          "census": {
+            "age": 0,
+            "tanks": 12,
+            "healthy_vehicles": 12
+          },
+          "units": {
+            "rhino_tank": 12,
+            "flak_track": 6,
+            "war_miner": 2
+          }
+        },
+        "expected": {
+          "objective": [
+            "build_army"
+          ],
+          "posture": [
+            "attack"
+          ]
+        }
+      }
+    ],
+    "attack_size": [
+      {
+        "name": "first attack, enemy base not looked at",
+        "scenario": {
+          "minutes": 5,
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "large"
+        ]
+      },
+      {
+        "name": "enemy defenses weak",
+        "scenario": {
+          "enemy": true,
+          "minutes": 5,
+          "strength": "weak",
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "medium"
+        ]
+      },
+      {
+        "name": "enemy defenses medium",
+        "scenario": {
+          "enemy": true,
+          "strength": "medium",
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "large"
+        ]
+      },
+      {
+        "name": "enemy defenses strong",
+        "scenario": {
+          "enemy": true,
+          "strength": "strong",
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "larger"
+        ]
+      },
+      {
+        "name": "late game, enemy strength unknown",
+        "scenario": {
+          "minutes": 13,
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "large"
+        ]
+      },
+      {
+        "name": "late game, enemy defenses strong",
+        "scenario": {
+          "enemy": true,
+          "minutes": 14,
+          "strength": "strong",
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "larger"
+        ]
+      },
+      {
+        "name": "one attack failed",
+        "scenario": {
+          "minutes": 7,
+          "failures": 1,
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "larger"
+        ]
+      },
+      {
+        "name": "one attack failed, late game",
+        "scenario": {
+          "minutes": 13,
+          "failures": 1,
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "larger"
+        ]
+      },
+      {
+        "name": "two attacks failed",
+        "scenario": {
+          "minutes": 9,
+          "failures": 2,
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "largest"
+        ]
+      },
+      {
+        "name": "three attacks failed, late game, weak defenses",
+        "scenario": {
+          "enemy": true,
+          "minutes": 15,
+          "failures": 3,
+          "strength": "weak",
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "largest"
+        ]
+      },
+      {
+        "name": "weak defenses, late game",
+        "scenario": {
+          "enemy": true,
+          "minutes": 14,
+          "strength": "weak",
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "small"
+        ]
+      },
+      {
+        "name": "medium defenses, one attack failed",
+        "scenario": {
+          "enemy": true,
+          "minutes": 8,
+          "failures": 1,
+          "strength": "medium",
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "larger"
+        ]
+      },
+      {
+        "name": "two attacks failed, early, base unknown",
+        "scenario": {
+          "minutes": 10,
+          "failures": 2,
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "largest"
+        ]
+      },
+      {
+        "name": "weak defenses, 3 minutes in",
+        "scenario": {
+          "enemy": true,
+          "minutes": 3,
+          "strength": "weak",
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "medium"
+        ]
+      },
+      {
+        "name": "strong defenses, one attack failed, late",
+        "scenario": {
+          "enemy": true,
+          "minutes": 13,
+          "failures": 1,
+          "strength": "strong",
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "larger"
+        ]
+      },
+      {
+        "name": "medium defenses, 11 minutes in",
+        "scenario": {
+          "enemy": true,
+          "minutes": 11,
+          "strength": "medium",
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "large"
+        ]
+      }
+    ],
+    "intel": [
+      {
+        "name": "dog scouts ready, base not explored",
+        "scenario": {
+          "radar": false,
+          "scouts": true,
+          "units": {
+            "attack_dog": 2
+          }
+        },
+        "expected": [
+          "explore"
+        ]
+      },
+      {
+        "name": "dog scouts ready, radar up, nothing explored",
+        "scenario": {
+          "scouts": true,
+          "units": {
+            "attack_dog": 2,
+            "rhino_tank": 2,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "explore",
+          "scout"
+        ]
+      },
+      {
+        "name": "explored, radar up, enemy unknown",
+        "scenario": {
+          "scouts": true,
+          "explored": true,
+          "units": {
+            "attack_dog": 2,
+            "rhino_tank": 2,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "scout"
+        ]
+      },
+      {
+        "name": "enemy base unknown, no verified scout team",
+        "scenario": {
+          "units": {
+            "rhino_tank": 2,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          null
+        ]
+      },
+      {
+        "name": "enemy base found, never looked at",
+        "scenario": {
+          "enemy": true,
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "look_enemy_base"
+        ]
+      },
+      {
+        "name": "enemy base looked at long ago",
+        "scenario": {
+          "enemy": true,
+          "looked_base": 120,
+          "units": {
+            "rhino_tank": 3,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "look_enemy_base"
+        ]
+      },
+      {
+        "name": "attack under way, fight not looked at",
+        "scenario": {
+          "campaign": 60,
+          "enemy": true,
+          "looked_base": 10,
+          "units": {
+            "rhino_tank": 10,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "look_at_army"
+        ]
+      },
+      {
+        "name": "attack under way, nothing looked at",
+        "scenario": {
+          "campaign": 60,
+          "enemy": true,
+          "units": {
+            "rhino_tank": 10,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "look_at_army",
+          "look_enemy_base"
+        ]
+      }
+    ],
+    "production": [
+      {"name": "siege support after a failed attack", "scenario": {"credits": 1800, "failures": 1, "units": {"rhino_tank": 6, "flak_track": 3, "war_miner": 2}}, "expected": ["v3_launcher"], "lane": "vehicles", "available": ["rhino_tank", "flak_track", "v3_launcher"]},
+      {
+        "name": "dog scouts first",
+        "scenario": {
+          "credits": 1500,
+          "structures": {
+            "ore_refinery": 1
+          }
+        },
+        "expected": [
+          "attack_dog"
+        ],
+        "lane": "infantry",
+        "available": [
+          "conscript",
+          "attack_dog",
+          "engineer"
+        ]
+      },
+      {
+        "name": "first air cover before expansion",
+        "scenario": {
+          "structures": {
+            "ore_refinery": 1
+          },
+          "units": {
+            "rhino_tank": 4
+          }
+        },
+        "expected": [
+          "flak_track"
+        ],
+        "lane": "vehicles",
+        "available": [
+          "war_miner",
+          "rhino_tank",
+          "flak_track"
+        ]
+      },
+      {
+        "name": "miners needed",
+        "scenario": {
+          "units": {
+            "flak_track": 1,
+            "rhino_tank": 4
+          }
+        },
+        "expected": [
+          "war_miner"
+        ],
+        "lane": "vehicles",
+        "available": [
+          "war_miner",
+          "rhino_tank",
+          "flak_track",
+          "terror_drone"
+        ]
+      },
+      {
+        "name": "anti-air share low",
+        "scenario": {
+          "units": {
+            "rhino_tank": 9,
+            "war_miner": 2
+          }
+        },
+        "expected": [
+          "flak_track"
+        ],
+        "lane": "vehicles",
+        "available": [
+          "war_miner",
+          "rhino_tank",
+          "flak_track",
+          "terror_drone"
+        ]
+      },
+      {
+        "name": "rich, battle lab",
+        "scenario": {
+          "credits": 6000,
+          "structures": {
+            "battle_lab": 1,
+            "radar_tower": 1
+          },
+          "units": {
+            "rhino_tank": 12,
+            "flak_track": 6,
+            "war_miner": 2
+          },
+          "enemy": true,
+          "looked_base": 0,
+          "strength": "medium",
+          "census": {
+            "age": 0,
+            "tanks": 12,
+            "healthy_vehicles": 12
+          }
+        },
+        "expected": [
+          "apocalypse_tank"
+        ],
+        "lane": "vehicles",
+        "available": [
+          "rhino_tank",
+          "flak_track",
+          "apocalypse_tank"
+        ]
+      },
+      {
+        "name": "miners and anti-air",
+        "scenario": {
+          "units": {
+            "flak_track": 1,
+            "rhino_tank": 5,
+            "war_miner": 1
+          }
+        },
+        "expected": [
+          "war_miner"
+        ],
+        "lane": "vehicles",
+        "available": [
+          "war_miner",
+          "rhino_tank",
+          "flak_track"
+        ]
+      },
+      {
+        "name": "rich Iraqi infantry",
+        "scenario": {
+          "credits": 5000,
+          "units": {
+            "rhino_tank": 12,
+            "flak_track": 6,
+            "war_miner": 2,
+            "attack_dog": 2,
+            "conscript": 8
+          },
+          "enemy": true,
+          "looked_base": 0,
+          "strength": "medium",
+          "census": {
+            "age": 0,
+            "tanks": 12,
+            "healthy_vehicles": 12
+          }
+        },
+        "expected": [
+          "desolator"
+        ],
+        "lane": "infantry",
+        "available": [
+          "conscript",
+          "desolator",
+          "engineer"
+        ]
+      },
+      {
+        "name": "rich battle lab without surviving army evidence",
+        "scenario": {
+          "credits": 6000,
+          "structures": {
+            "battle_lab": 1,
+            "radar_tower": 1
+          },
+          "units": {
+            "rhino_tank": 12,
+            "flak_track": 6,
+            "war_miner": 2
+          },
+          "enemy": true,
+          "looked_base": 0,
+          "strength": "medium"
+        },
+        "expected": [
+          "rhino_tank"
+        ],
+        "lane": "vehicles",
+        "available": [
+          "rhino_tank",
+          "flak_track",
+          "apocalypse_tank"
+        ]
+      },
+      {
+        "name": "rich infantry without surviving army evidence",
+        "scenario": {
+          "credits": 5000,
+          "units": {
+            "rhino_tank": 12,
+            "flak_track": 6,
+            "war_miner": 2,
+            "attack_dog": 2,
+            "conscript": 8
+          },
+          "enemy": true,
+          "looked_base": 0,
+          "strength": "medium"
+        },
+        "expected": [
+          null
+        ],
+        "lane": "infantry",
+        "available": [
+          "conscript",
+          "desolator",
+          "engineer"
+        ]
+      },
+      {
+        "name": "basic anti-air infantry before conscript fill without high tech",
+        "scenario": {
+          "credits": 1200,
+          "units": {
+            "attack_dog": 2,
+            "rhino_tank": 2,
+            "flak_trooper": 0,
+            "conscript": 0
+          }
+        },
+        "expected": [
+          "flak_trooper"
+        ],
+        "lane": "infantry",
+        "available": [
+          "flak_trooper",
+          "conscript",
+          "desolator"
+        ]
+      }
+    ],
+    "resources": [
+      {"name": "scarce ore, low cash, quiet base, fresh gem field", "scenario": {"credits": 700}, "miner_evidence": {"saved": true, "home_chips": 2, "home_age": 0, "thin_for": 30, "gem_age": 0, "explored": true}, "expected": ["harvest_gems"]},
+      {"name": "plentiful home ore even with a known gem field", "scenario": {"credits": 700}, "miner_evidence": {"saved": true, "home_chips": 60, "home_age": 0, "thin_for": null, "gem_age": 0, "explored": true}, "expected": ["keep_home"]},
+      {"name": "scarce ore, unexplored resource choice, nearby ground visible", "scenario": {"credits": 700}, "miner_evidence": {"saved": true, "home_chips": 2, "home_age": 0, "thin_for": 30, "gem_age": null, "explored": true}, "expected": ["survey_gems"]},
+      {"name": "stale gem observation needs another survey", "scenario": {"credits": 700}, "miner_evidence": {"saved": true, "home_chips": 2, "home_age": 0, "thin_for": 30, "gem_age": 100, "explored": true}, "expected": ["survey_gems"]},
+      {"name": "recent raid keeps miner home", "scenario": {"credits": 700, "threat": 1}, "miner_evidence": {"saved": true, "home_chips": 2, "home_age": 0, "thin_for": 30, "gem_age": 0, "explored": true}, "expected": ["keep_home"]},
+      {"name": "missing miner team keeps resource orders unavailable", "scenario": {"credits": 700}, "miner_evidence": {"saved": false, "home_chips": 2, "home_age": 0, "thin_for": 30, "gem_age": 0, "explored": true}, "expected": ["keep_home"]},
+      {"name": "sufficient cash keeps miner home", "scenario": {"credits": 3000}, "miner_evidence": {"saved": true, "home_chips": 2, "home_age": 0, "thin_for": 30, "gem_age": 0, "explored": true}, "expected": ["keep_home"]},
+      {"name": "visible home ore but income and production stalled", "scenario": {"credits": 0}, "miner_evidence": {"saved": true, "home_chips": 60, "home_target": [150, 50], "home_age": 0, "thin_for": null, "gem_age": 0, "explored": true, "income_idle_for": 95}, "expected": ["harvest_home_ore"]},
+      {"name": "visible home ore and production still advancing", "scenario": {"credits": 0}, "miner_evidence": {"saved": true, "home_chips": 60, "home_target": [150, 50], "home_age": 0, "thin_for": null, "gem_age": 0, "explored": true, "income_idle_for": 5}, "expected": ["keep_home"]},
+      {"name": "stalled income without a coherent ore target", "scenario": {"credits": 0}, "miner_evidence": {"saved": true, "home_chips": 60, "home_age": 0, "thin_for": null, "gem_age": null, "explored": true, "income_idle_for": 95}, "expected": ["keep_home"]},
+      {"name": "stalled income during a raid", "scenario": {"credits": 0, "threat": 1}, "miner_evidence": {"saved": true, "home_chips": 60, "home_target": [150, 50], "home_age": 0, "thin_for": null, "gem_age": null, "explored": true, "income_idle_for": 95}, "expected": ["keep_home"]}
+    ],
+    "placement": [
+      {
+        "name": "safe ally",
+        "item": "tesla_reactor",
+        "build_off_ally": true,
+        "scenario": {
+          "credits": 5000,
+          "structures": {
+            "sentry_gun": 1
+          }
+        },
+        "expected": [
+          "ally_base"
+        ]
+      },
+      {
+        "name": "disabled ally construction",
+        "item": "tesla_reactor",
+        "build_off_ally": false,
+        "scenario": {
+          "credits": 5000,
+          "structures": {
+            "sentry_gun": 1
+          }
+        },
+        "expected": [
+          "home"
+        ]
+      },
+      {
+        "name": "home under attack",
+        "item": "tesla_reactor",
+        "build_off_ally": true,
+        "scenario": {
+          "credits": 5000,
+          "structures": {
+            "sentry_gun": 1
+          },
+          "threat": 1
+        },
+        "expected": [
+          "home"
+        ]
+      },
+      {
+        "name": "ally threatened",
+        "item": "tesla_reactor",
+        "build_off_ally": true,
+        "scenario": {
+          "credits": 5000,
+          "structures": {
+            "sentry_gun": 1
+          }
+        },
+        "expected": [
+          "home"
+        ],
+        "enemy_at_ally": true
+      },
+      {
+        "name": "stay on assault",
+        "item": "tesla_reactor",
+        "build_off_ally": true,
+        "scenario": {
+          "credits": 5000,
+          "structures": {
+            "sentry_gun": 1
+          }
+        },
+        "expected": [
+          "home"
+        ],
+        "focus": "attack"
+      }
+    ]
+  }
+}

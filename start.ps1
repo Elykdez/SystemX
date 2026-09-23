@@ -1,7 +1,9 @@
 param(
     [ValidateSet('cuda', 'cpu')][string]$Device = 'cuda',
     [string]$BindAddress = '127.0.0.1',
-    [int]$Port = 8000
+    [int]$Port = 8000,
+    [ValidateRange(0, 3)][int]$Workers = 0,
+    [ValidateSet('', 'none', 'int8')][string]$Quantization = ''
 )
 $ErrorActionPreference = 'Stop'
 $pythonPath = Join-Path $PSScriptRoot '.venv/Scripts/python.exe'
@@ -19,7 +21,9 @@ try {
             throw 'Model cache check failed. Run model_download.py --check-only to inspect the error.'
         }
     }
-    & $pythonPath (Join-Path $PSScriptRoot 'server.py') --host $BindAddress --port $Port --device $Device
+    $workerArgs = if ($Workers -gt 0) { @('--workers', $Workers) } else { @() }
+    $quantArgs = if ($Quantization) { @('--quantization', $Quantization) } else { @() }
+    & $pythonPath (Join-Path $PSScriptRoot 'server.py') --host $BindAddress --port $Port --device $Device @workerArgs @quantArgs
     $serverExitCode = $LASTEXITCODE
 } finally {
     $env:HF_HUB_OFFLINE = $previousOffline

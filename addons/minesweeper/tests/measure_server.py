@@ -6,11 +6,11 @@ import json
 import logging
 from pathlib import Path
 
-from backend import VonBackend, configure_cache
+from backend import ModelBackend, configure_cache
 from server import create_app
 
 
-class MeasuredBackend(VonBackend):
+class MeasuredBackend(ModelBackend):
     def __init__(self, output):
         super().__init__('cuda')
         self.output = output

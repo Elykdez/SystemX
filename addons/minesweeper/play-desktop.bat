@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title SystemOne Desktop Minesweeper
+title SystemX Desktop Minesweeper
 pushd "%~dp0..\.." || exit /b 1
 if not exist ".venv\Scripts\python.exe" (
     echo Run the root setup.bat first.
@@ -15,7 +15,7 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
-".venv\Scripts\python.exe" -m addons.minesweeper.desktop_player %*
+".venv\Scripts\python.exe" -m addons.minesweeper --interface visual %*
 set "playerExitCode=%errorlevel%"
 popd
 if not "%playerExitCode%"=="0" pause

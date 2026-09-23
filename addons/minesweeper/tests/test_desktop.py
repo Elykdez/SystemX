@@ -62,6 +62,16 @@ def test_unknown_and_ambiguous_samples_never_become_empty_cells():
     assert board is None and details[0]['label'] is None
 
 
+def test_boyfriends_arcade_heldout_live_win():
+    root = Path(__file__).resolve().parents[1]
+    profile = Profile.load(root / 'visual/profiles/boyfriends-arcade.json')
+    pixels = cv2.imread(str(Path(__file__).parent / 'fixtures/visual/boyfriends-arcade-win.png'))
+    board, details = recognize(pixels, Grid(0, 0, 447, 447, 9, 9, 10), profile)
+    assert all(cell['label'] is not None for cell in details)
+    assert board.status == 'won'
+    assert sum(cell.state.isdigit() for cell in board.cells) == 71
+
+
 def test_profile_roundtrip_and_untrusted_data_validation(tmp_path):
     p = Profile()
     p.add('1', np.zeros((32, 32, 3), np.uint8))
@@ -136,6 +146,34 @@ def test_flag_postcondition_accepts_only_a_flag():
     assert driver.wait_for_change(board()).cells[0].state == 'flag'
 
 
+def test_post_click_cursor_occlusion_retries_without_repeating_input(monkeypatch):
+    driver = object.__new__(DesktopDriver)
+    driver.pending = (0, 0, 'left')
+    driver.gate = Gate()
+    driver.gate.start()
+    driver.generation = driver.gate.generation
+    observations = iter([DesktopPause('Cursor obscures cell'), board(('1', 'hidden'))])
+    def observe():
+        result = next(observations)
+        if isinstance(result, Exception):
+            raise result
+        return result
+    driver.observe = observe
+    monkeypatch.setattr('addons.minesweeper.desktop_driver.time.sleep', lambda _: None)
+    assert driver.wait_for_change(board()).cells[0].state == '1'
+    assert driver.pending is None
+
+
+@pytest.mark.parametrize('row,col,expected', [(0,1,(270,66)), (2,1,(270,494)),
+                                            (1,0,(56,280)), (1,2,(484,280))])
+def test_cursor_parks_beyond_nearest_edge_inside_client(row, col, expected):
+    grid = Grid(100, 100, 300, 300, 3, 3)
+    geometry = Geometry(20, 30, 600, 600, 96)
+    driver = DesktopDriver(None, None, grid, Profile(), Gate(), 0, geometry)
+    box = next(b for r,c,b in grid.boxes() if (r,c) == (row,col))
+    assert driver.parking_point(Cell(row,col,'hidden',box)) == expected
+
+
 @pytest.mark.parametrize('name', ['heldout-win', 'loss', 'supervised-win'])
 def test_recorded_visual_boards(name):
     folder = Path(__file__).parent / 'fixtures/visual'
@@ -185,11 +223,11 @@ def test_partial_input_failure_releases_button_and_stops(monkeypatch):
     calls = []
     def send(count, *args):
         calls.append(count)
-        return 2 if count == 3 else count
+        return 0 if len(calls) == 2 else count
     monkeypatch.setattr(input_module.user32, 'SendInput', send)
     with pytest.raises(DesktopPause, match='complete click'):
         input_module.Mouse(target, gate).click(10, 10, 'left', geometry, gate.generation)
-    assert calls == [3, 1]
+    assert calls == [1, 1, 1]
 
 
 def test_initial_pointer_parking_sends_only_movement(monkeypatch):
@@ -226,7 +264,7 @@ def test_prepare_parks_outside_board_before_recognition(monkeypatch):
     driver = DesktopDriver(None, mouse, grid, Profile(), Gate(), 12, geometry)
     monkeypatch.setattr('addons.minesweeper.desktop_driver.time.sleep', lambda _: None)
     driver.prepare()
-    assert calls == [(270, 130, geometry, 12)]
+    assert calls == [(270, 86, geometry, 12)]
 
 
 def test_classification_cache_reuses_pixels_but_invalidates_on_teaching(monkeypatch):
@@ -503,3 +541,34 @@ def test_identical_board_skips_recognition_but_keeps_capture_and_hit_checks(monk
     with pytest.raises(DesktopPause, match='covered'):
         driver._read()
     assert len(recognitions) == 3
+
+@pytest.mark.parametrize('cancel_at,expected', [(None, [0xC001, 2, 4, 0xC001]), (1, [0xC001]), (2, [0xC001, 2, 4])])
+def test_frame_polled_click_has_separate_edges_and_releases_on_cancel(monkeypatch, cancel_at, expected):
+    import ctypes
+    from desktop import input as input_module
+    gate = Gate()
+    gate.start()
+    geometry = Geometry(0, 0, 200, 200, 96)
+    target = SimpleNamespace(geometry=lambda: geometry, check_point=lambda *a, **kw: None)
+    monkeypatch.setattr(input_module, 'cursor', lambda: (0, 0))
+    monkeypatch.setattr(input_module.user32, 'GetAsyncKeyState', lambda key: 0)
+    monkeypatch.setattr(input_module.user32, 'GetSystemMetrics', lambda key: {76:0,77:0,78:1920,79:1080}[key])
+    events, waits = [], []
+    def send(count, pointer, size):
+        assert count == 1
+        events.append(ctypes.cast(pointer, ctypes.POINTER(input_module.Input)).contents.data.mi.dwFlags)
+        return count
+    def sleep(delay):
+        waits.append(delay)
+        if len(waits) == cancel_at:
+            gate.pause()
+    monkeypatch.setattr(input_module.user32, 'SendInput', send)
+    monkeypatch.setattr(input_module.time, 'sleep', sleep)
+    mouse = input_module.Mouse(target, gate)
+    if cancel_at:
+        with pytest.raises(DesktopPause, match='cancelled'):
+            mouse.click(50, 50, 'left', geometry, gate.generation, park=(50, 10))
+    else:
+        mouse.click(50, 50, 'left', geometry, gate.generation, park=(50, 10))
+        assert waits == [.05, .05, .05]
+    assert events == expected

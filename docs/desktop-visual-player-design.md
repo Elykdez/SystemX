@@ -1,15 +1,21 @@
 # Desktop visual player design
 
+Terminology: [System 0 and System 1](system-one-model.md#system-0-and-system-1-in-the-current-player)
+mean visual perception (mainly OpenCV) and bounded decisions (currently StartLux).
+The visual adapter supplies observations; game logic constructs legal candidates;
+the controller validates, executes and verifies the chosen action. A different
+decision backend requires qualification before use.
+
 Status: initial implementation available; acceptance testing is incomplete.
-Prepared 2026-09-23 against SystemOne and the Minesweeper addon. See the
+Prepared 2026-09-23 against SystemX and the Minesweeper addon. See the
 [usage guide](../addons/minesweeper/DESKTOP.md) and
-[validation/VRAM report](desktop-visual-player-validation.md) for implemented
+[validation/VRAM report](minesweeper-validation.md) for implemented
 behavior, measured results, and deferred gates. Sections below retain the design
 targets; they are not claims that every target has been implemented or verified.
 
 ## Purpose and scope
 
-Add a reusable desktop observation and input layer. Keep SystemOne as a general model HTTP server. Game addons interpret images, maintain game state, construct candidate actions, and verify outcomes. Minesweeper is the first consumer.
+Add a reusable desktop observation and input layer. Keep SystemX as a general model HTTP server. Game addons interpret images, maintain game state, construct candidate actions, and verify outcomes. Minesweeper is the first consumer.
 
 Initial target: Windows 10/11, an interactive desktop, a visible window, and ordinary rectangular Minesweeper with eight-neighbor rules. Support the existing web game through pixels and at least one native implementation. The user opens the game and starts a board; the player attaches to it without a URL or browser extension.
 
@@ -19,11 +25,11 @@ Support across appearances means tested recognition profiles and explicit calibr
 
 ```mermaid
 flowchart LR
-    Capture[Desktop capture] --> Vision[Game visual recognition]
+    Capture[Desktop capture] --> Vision[System 0: OpenCV visual recognition]
     Vision --> State[Validated game state]
     State --> Rules[Game candidate actions]
-    Rules --> Von[Existing SystemOne API]
-    Von --> Check[Reobserve and validate action]
+    Rules --> S1[System 1: StartLux decision model]
+    S1 --> Check[Reobserve and validate action]
     Rules -->|Only one candidate| Check
     Check --> Input[Desktop mouse input]
     Input --> Capture
@@ -31,7 +37,7 @@ flowchart LR
 
 | Component | Owns | Does not own |
 | --- | --- | --- |
-| SystemOne server | Model loading and typed decisions | Screen capture, UI, mouse access, game rules |
+| SystemX server | Model loading and typed decisions | Screen capture, UI, mouse access, game rules |
 | Shared desktop library | Target window, captured frames, coordinates, focus checks, input, cancellation | Minesweeper cells or strategies |
 | Minesweeper visual adapter | Grid detection, cell classification, terminal recognition, appearance profiles | Server lifecycle |
 | Minesweeper session | Board validation, candidate selection, decision freshness, expected click result | Windows capture implementation |
@@ -102,7 +108,7 @@ Begin from an unflagged board by default. The existing planner treats flags as c
 
 ## Decision and input contract
 
-Keep Von's current role: choose among legal candidates supplied by Minesweeper logic. Skip inference for a sole candidate. Never ask it to resolve an unreadable digit or invent an unseen mine location. No raw model response can become an arbitrary desktop coordinate.
+Keep System One's current role: choose among legal candidates supplied by Minesweeper logic. Skip inference for a sole candidate. Never ask it to resolve an unreadable digit or invent an unseen mine location. No raw model response can become an arbitrary desktop coordinate.
 
 Associate every pending decision with its board fingerprint, geometry revision, profile revision, and run generation. Increment the run generation on pause, stop, recalibration, and restart. A late HTTP response from a previous generation is discarded.
 
@@ -116,7 +122,7 @@ Verify the expected result, not just any changed pixel. A reveal must change the
 
 ## User flow and lifecycle
 
-1. Start SystemOne separately when using Von. Launch the proposed desktop Minesweeper player.
+1. Start SystemX separately when using the System One model. Launch the proposed desktop Minesweeper player.
 2. Select an already open game window, select or calibrate the board, and choose a recognition profile.
 3. Inspect the recognized board in preview. Unknown cells are highlighted with an actionable reason.
 4. Focus the game and use a registered global hotkey to step or run. The controller must not require moving focus to its own console for each action. Show the assigned hotkeys and fail clearly if registration conflicts.
@@ -129,7 +135,7 @@ Keep the existing URL-based Playwright entry point usable. Desktop mode selects 
 
 ## HTTP and optional WebSocket transport
 
-Keep HTTP as the initial inference transport. The existing `VonDecision` already
+Keep HTTP as the initial inference transport. The existing `SystemOneDecision` already
 uses one persistent `httpx.Client`, which pools and reuses connections when
 available. WebSocket is therefore not simply removing a connection handshake
 from every move. Idle HTTP connections can expire; benchmark actual request
@@ -145,7 +151,7 @@ events instead of adding a network hop.
 
 Changing transport does not reduce recognition or model computation time, remove
 the network round trip for a dependent decision, or remove the wait for a visible
-game response. Von returns a bounded decision, not a stream of generated tokens.
+game response. System One returns a bounded decision, not a stream of generated tokens.
 No latency improvement is claimed until measured.
 
 If benchmarks justify a WebSocket inference endpoint, implement it as a thin,
@@ -199,12 +205,12 @@ Store bounded local session logs in `.cache/minesweeper/desktop/`: observed labe
 | 1. Capture and coordinate spike | Select a window, capture region, show preview, map a grid onto a test surface | Correct cell hits on a controlled click-recorder at 100%, 125%, 150%, and 200% scaling; moved windows and a secondary monitor with negative origin; no model calls |
 | 2. Passive Minesweeper vision | Calibration, profiles, labels, uncertainty and terminal detection | Held-out web and native screenshots with hand labels; every accepted board exactly matches labels; unsupported crops reject; report rejection rate as well as accuracy; no mouse input |
 | 3. Step mode | One verified action per request with stop/pause gates | Controlled tests for focus loss, overlays, geometry changes, unknowns, delayed model response, cancellation, and failed click; zero unintended or duplicate clicks in the suite |
-| 4. Complete games | Autonomous run using existing planner and Von | At least ten attempts on each of the web and native targets, with recorded terminal outcomes or explained pauses; report recognition failures separately from legitimate losses on guesses |
+| 4. Complete games | Autonomous run using the existing planner and System One | At least ten attempts on each of the web and native targets, with recorded terminal outcomes or explained pauses; report recognition failures separately from legitimate losses on guesses |
 | 5. Packaging and regression | Desktop setup/launcher and docs, DOM regression coverage | Fresh-environment installation; desktop use needs no Playwright/plugin; existing DOM mode and server tests still pass; measure resource use |
 
 Stage 2's exact-match gate is a release condition for the supported fixtures, not a guarantee on all future images. Evaluate precision and rejection coverage together so a recognizer that rejects everything does not pass. Define supported themes and minimum acceptance coverage from the collected fixtures before enabling automatic play.
 
-Use saved screenshots, mocked decisions, and the controlled click surface for most development. Load Von only for limited integration and final live tests. Screenshots used by the visual player must not contain hidden game state; a controlled test harness may know expected click results solely for verification.
+Use saved screenshots, mocked decisions, and the controlled click surface for most development. Load the selected System One backend only for limited integration and final live tests. Screenshots used by the visual player must not contain hidden game state; a controlled test harness may know expected click results solely for verification.
 
 ## Decisions deferred until evidence exists
 

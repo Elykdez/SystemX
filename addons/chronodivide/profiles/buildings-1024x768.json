@@ -1,0 +1,132 @@
+{
+  "description": "Fixed native-scale grayscale appearance templates, including one damaged yard. Ownership is checked separately. Unknown damage, occluded and differently scaled appearances may be missed.",
+  "source": "tests/fixtures/base-reactors.png",
+  "templates": [
+    {
+      "name": "construction_yard",
+      "crop": [
+        334,
+        309,
+        519,
+        407
+      ],
+      "box_offset": [
+        -9,
+        -54,
+        196,
+        123
+      ],
+      "threshold": 0.78
+    },
+    {
+      "name": "construction_yard",
+      "template": "construction_yard_damaged",
+      "source": "tests/fixtures/repair-damaged-yard-unselected-browser.png",
+      "crop": [
+        334,
+        309,
+        519,
+        407
+      ],
+      "box_offset": [
+        -9,
+        -54,
+        196,
+        123
+      ],
+      "threshold": 0.82
+    },
+    {
+      "name": "tesla_reactor",
+      "crop": [
+        275,
+        357,
+        365,
+        441
+      ],
+      "box_offset": [
+        -5,
+        -7,
+        104,
+        93
+      ],
+      "threshold": 0.62
+    },
+    {
+      "name": "construction_yard",
+      "template": "allied_construction_yard",
+      "crop": [
+        334,
+        309,
+        519,
+        407
+      ],
+      "box_offset": [
+        -9,
+        -54,
+        196,
+        123
+      ],
+      "threshold": 0.9,
+      "source": "tests/fixtures/allied-base-browser.png"
+    },
+    {
+      "name": "war_factory",
+      "template": "soviet_war_factory",
+      "source": "tests/fixtures/soviet-factory-healthy.png",
+      "crop": [87, 122, 143, 150],
+      "box_offset": [-69, -63, 112, 92],
+      "threshold": 0.85
+    },
+    {
+      "name": "war_factory",
+      "template": "soviet_war_factory_damaged",
+      "source": "tests/fixtures/soviet-factory-damaged-unselected.png",
+      "crop": [87, 122, 143, 150],
+      "box_offset": [-69, -63, 112, 92],
+      "threshold": 0.82
+    },
+    {
+      "name": "war_factory",
+      "template": "allied_war_factory",
+      "source": "tests/fixtures/allied-factory-healthy.png",
+      "crop": [80, 102, 154, 126],
+      "box_offset": [-67, -55, 134, 97],
+      "threshold": 0.86
+    },
+    {
+      "name": "war_factory",
+      "template": "allied_war_factory_damaged",
+      "source": "tests/fixtures/allied-factory-damaged-unselected.png",
+      "crop": [137, 116, 176, 148],
+      "box_offset": [-124, -69, 77, 83],
+      "threshold": 0.86
+    },
+    {
+      "name": "power_plant",
+      "template": "allied_power_plant_damaged",
+      "source": "tests/fixtures/allied-power-plant-damaged-unselected.png",
+      "crop": [50, 64, 105, 134],
+      "box_offset": [-10, -9, 65, 76],
+      "threshold": 0.86
+    },
+    {
+      "name": "power_plant",
+      "template": "allied_power_plant",
+      "crop": [
+        280,
+        375,
+        335,
+        445
+      ],
+      "box_offset": [
+        -10,
+        -9,
+        70,
+        82
+      ],
+      "threshold": 0.8,
+      "source": "tests/fixtures/allied-base-browser.png"
+    }
+  ]
+}

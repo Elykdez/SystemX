@@ -2,7 +2,7 @@ import httpx
 import pytest
 
 from addons.minesweeper.board import Board, Box, Cell
-from addons.minesweeper.decision import VonDecision, choose_move
+from addons.minesweeper.decision import SystemOneDecision, choose_move
 from addons.minesweeper.planner import candidates
 from addons.minesweeper.session import MinesweeperSession, StaleObservation
 
@@ -12,7 +12,7 @@ def board(states=("hidden", "hidden"), offset=0, status="playing"):
                              for c, state in enumerate(states)), status)
 
 
-def test_von_receives_visible_state_and_must_select_a_candidate():
+def test_systemone_receives_visible_state_and_must_select_a_candidate():
     current = board()
     options = candidates(current)
     def respond(request):
@@ -21,17 +21,17 @@ def test_von_receives_visible_state_and_must_select_a_candidate():
         assert payload["state"]["visible_board"] == ["??"]
         assert len(payload["questions"]["move"]["criteria"]) == 2
         return httpx.Response(200, json={"answers": {"move": {"choice": options[-1].id}}, "latency_ms": 1})
-    brain = VonDecision(client=httpx.Client(base_url="http://test", transport=httpx.MockTransport(respond)))
+    brain = SystemOneDecision(client=httpx.Client(base_url="http://test", transport=httpx.MockTransport(respond)))
     action, details = choose_move(current, brain)
     assert action == options[-1]
-    assert details["source"] == "von"
+    assert details["source"] == "systemone"
     brain.close()
 
 
 @pytest.mark.parametrize("response", [httpx.Response(429), httpx.Response(503),
     httpx.Response(200, json={"answers": {"move": {"choice": "invented"}}})])
 def test_model_failure_does_not_silently_choose_another_move(response):
-    brain = VonDecision(client=httpx.Client(base_url="http://test", transport=httpx.MockTransport(lambda _: response)))
+    brain = SystemOneDecision(client=httpx.Client(base_url="http://test", transport=httpx.MockTransport(lambda _: response)))
     with pytest.raises((httpx.HTTPStatusError, ValueError)):
         choose_move(board(), brain)
     brain.close()

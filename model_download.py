@@ -13,9 +13,8 @@ from pathlib import Path
 import sys
 import traceback
 
-from backend import FILES, MODEL_ID, MODEL_REVISION, configure_cache, download_model
+from backend import FILES, WEIGHT_FILES, MODEL_ID, MODEL_REVISION, configure_cache, download_model
 
-CHECKPOINT_BYTES = 1581316050
 
 
 def snapshot_directory():
@@ -30,10 +29,10 @@ def snapshot_ready(directory):
         path = directory / name
         if not path.is_file():
             return False
-        if name == "option_marker.pt":
-            if path.stat().st_size != CHECKPOINT_BYTES:
+        if name in WEIGHT_FILES:
+            if path.stat().st_size != WEIGHT_FILES[name]:
                 return False
-        else:
+        elif name.endswith(".json"):
             try:
                 with path.open(encoding="utf-8") as source:
                     if not isinstance(json.load(source), dict):
@@ -70,7 +69,7 @@ def main(argv=None):
         return 0
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        emit("error", message="The Von model could not be prepared. Check the download log and retry.")
+        emit("error", message="The System One Instant model could not be prepared. Check the download log and retry.")
         return 1
 
 
