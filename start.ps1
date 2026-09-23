@@ -5,7 +5,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $pythonPath = Join-Path $PSScriptRoot '.venv/Scripts/python.exe'
-if (-not (Test-Path -LiteralPath $pythonPath)) { throw 'Run setup.ps1 first.' }
+if (-not (Test-Path -LiteralPath $pythonPath)) { throw 'Run setup.bat first to install dependencies and download the model.' }
 $previousOffline = $env:HF_HUB_OFFLINE
 try {
     if (-not (Test-Path Env:HF_HUB_OFFLINE)) {

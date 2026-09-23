@@ -12,15 +12,21 @@ On this prepared machine, **double-click `start.bat`**. It opens a visible conso
 
 From a terminal, the batch launcher also accepts the PowerShell options: `start.bat -Device cpu -Port 8001`.
 
-For a new installation:
+For a fresh checkout, **double-click `setup.bat` first**, then `start.bat`.
+Setup keeps its window open to show the result. From a terminal:
 
 ```powershell
 Set-Location E:\Workspace\Python\SystemOne
-& ./setup.ps1
-& ./start.ps1
+& ./setup.bat
+& ./start.bat
 ```
 
-Setup creates this folder's `.venv`, installs pinned dependencies, and downloads missing model files. It does not load the model onto the GPU. This extracted copy already includes the pinned model cache; future copies can omit `.cache` and download it through setup. Run setup on each new machine instead of moving a virtual environment between Python installations.
+Setup creates this folder's `.venv`, installs pinned dependencies, and downloads missing model files into `.cache/huggingface` by default. Both `.venv` and `.cache` are excluded from Git, so a fresh checkout needs setup and internet access. A complete cached model is reused. Setup does not load the model onto the GPU. Run setup on each new machine instead of moving a virtual environment between Python installations.
+
+`start.bat` downloads missing model files when dependencies are already installed,
+but does not install Python packages or create the environment. The PowerShell
+scripts remain available for direct use. Python 3.12 and Git must be installed
+before running setup.
 
 When the complete pinned model is cached, the launcher automatically uses offline
 mode to avoid waiting on Hugging Face during startup. It prints whether it will
@@ -38,8 +44,8 @@ Wait for `ready: true` and `status: ready` before sending decisions. Loading and
 CPU-only installation and launch:
 
 ```powershell
-& ./setup.ps1 -Device cpu
-& ./start.ps1 -Device cpu -Port 8001
+& ./setup.bat -Device cpu
+& ./start.bat -Device cpu -Port 8001
 ```
 
 CUDA errors are reported instead of silently falling back to CPU. `start.ps1` defaults to CUDA; pass `-Device cpu` explicitly when using it. The direct Python entry point also accepts `--device cpu` and defaults to `VON_DEVICE` or CUDA.

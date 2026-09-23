@@ -13,6 +13,7 @@ $torchIndex = if ($Device -eq 'cuda') { 'https://download.pytorch.org/whl/cu126'
 if ($LASTEXITCODE -ne 0) { throw 'PyTorch installation failed.' }
 & $pythonPath -m pip install -r (Join-Path $serverRoot 'requirements.txt') --timeout 600
 if ($LASTEXITCODE -ne 0) { throw 'Server dependency installation failed.' }
-& $pythonPath (Join-Path $serverRoot 'backend.py')
+Write-Host 'Preparing the Von model. Missing files will be downloaded; an existing complete cache is reused.'
+& $pythonPath (Join-Path $serverRoot 'model_download.py')
 if ($LASTEXITCODE -ne 0) { throw 'Model download failed.' }
-Write-Host "Ready to start: & '$serverRoot/start.ps1' -Device $Device"
+Write-Host "Ready to start: '$serverRoot/start.bat' -Device $Device"

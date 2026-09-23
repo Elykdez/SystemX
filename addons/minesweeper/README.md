@@ -25,16 +25,18 @@ and API details.
 
 ## Start
 
-1. On a fresh installation, run the root `setup.ps1`, then
-   `addons/minesweeper/setup-minesweeper.ps1`. Google Chrome must already be
+1. On a fresh installation, double-click the root `setup.bat`, then double-click
+   `addons/minesweeper/setup-minesweeper.bat`. Google Chrome must already be
    installed. This working copy already has the dependencies.
 2. Double-click the root `start.bat` and wait for the Von server to report ready.
 3. Open `addons/minesweeper` and double-click `play-minesweeper.bat`.
 4. Enter the full game URL, including `http://` or `https://`, when prompted.
 5. Once the board opens, type `r` and press Enter to start.
 
-Both scripts in this folder locate the root environment themselves. They work
-when double-clicked or launched from another working directory.
+The setup and player batch launchers locate the root environment themselves.
+They work when double-clicked or launched from another working directory.
+Setup keeps its console open so you can read the result. Run it once per
+installation; it installs the addon dependencies without loading the model.
 
 While waiting, the console reports whether the server is unreachable or the model
 is loading, with elapsed seconds and Ctrl+C cancellation. It polls `/health`
