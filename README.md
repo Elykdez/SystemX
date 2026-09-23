@@ -257,6 +257,11 @@ Application-specific clients live under `addons/`, with their own launchers,
 dependencies, and instructions. They call the server's HTTP API and keep their
 application logic separate from the core model service.
 
+The [desktop visual player design](docs/desktop-visual-player-design.md) describes
+shared screen capture and mouse control. Its first Minesweeper implementation has
+[setup instructions](addons/minesweeper/DESKTOP.md) and a
+[validation and VRAM report](docs/desktop-visual-player-validation.md).
+
 ### Minesweeper player
 
 The [Minesweeper addon](addons/minesweeper/README.md) reads the visible board,

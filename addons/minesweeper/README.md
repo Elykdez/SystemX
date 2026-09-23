@@ -1,5 +1,9 @@
 # Minesweeper player
 
+There are two entry points: this page describes the existing web/Playwright
+player; the [desktop player](DESKTOP.md) reads pixels and controls a selected
+Windows game window. Each has its own optional setup batch file.
+
 This addon controls a separately hosted Minesweeper game at a URL you enter.
 It reads visible cell labels and
 bounding boxes, asks the SystemOne server for decisions, and sends normal

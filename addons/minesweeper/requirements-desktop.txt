@@ -1,0 +1,3 @@
+opencv-python-headless==4.13.0.92
+mss==10.2.0
+Pillow==12.1.1

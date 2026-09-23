@@ -26,10 +26,13 @@ class MinesweeperSession:
         self.can_act = can_act
 
     def step(self):
+        started = time.perf_counter()
         board = self.driver.observe()
+        observed = time.perf_counter()
         if board.status != "playing":
             return {"status": board.status, "steps": self.steps}
         action, decision = choose_move(board, self.brain)
+        decided = time.perf_counter()
         if action is None:
             return {"status": "stalled", "steps": self.steps}
         if self.can_act is not None and not self.can_act():
@@ -40,12 +43,22 @@ class MinesweeperSession:
         cell = next(cell for cell in current.cells if (cell.row, cell.col) == (action.row, action.col))
         if cell.state != "hidden":
             raise StaleObservation("The selected cell is no longer covered.")
+        revalidated = time.perf_counter()
         # The driver also hit-tests the center immediately before mouse input.
+        self.last_action = asdict(action)
         self.driver.click(cell, action.button)
+        clicked = time.perf_counter()
         after = self.driver.wait_for_change(current)
+        verified = time.perf_counter()
         self.steps += 1
         event = {"time": time.time(), "step": self.steps, "status": after.status,
                  "action": asdict(action), "box": asdict(cell.box), "decision": decision,
+                 "timing_ms": {"observe": round((observed - started) * 1000, 3),
+                               "decide": round((decided - observed) * 1000, 3),
+                               "revalidate": round((revalidated - decided) * 1000, 3),
+                               "input": round((clicked - revalidated) * 1000, 3),
+                               "verify": round((verified - clicked) * 1000, 3),
+                               "total": round((verified - started) * 1000, 3)},
                  "visible_before": [[c.row, c.col, c.state] for c in board.cells],
                  "visible_after": [[c.row, c.col, c.state] for c in after.cells]}
         if self.log:
