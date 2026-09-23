@@ -1,0 +1,1 @@
+"""Game-player addon tests."""
