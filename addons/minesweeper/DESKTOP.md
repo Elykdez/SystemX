@@ -1,4 +1,4 @@
-# Desktop Minesweeper player
+# Minesweeper screen-pixel adapter
 
 Terminology: **System 0** is the OpenCV visual adapter that recognizes the board.
 **System 1 (System One)** is the decision-model role, currently StartLux through
@@ -6,25 +6,35 @@ the HTTP API. Minesweeper logic constructs legal candidates; the controller
 validates the choice, clicks and verifies the result. See the
 [shared role definitions](../../docs/system-one-model.md#system-0-and-system-1-in-the-current-player).
 
-This optional player reads screen pixels and sends ordinary Windows mouse input.
+This adapter in the [unified Minesweeper inspector](README.md) reads screen pixels
+and sends ordinary Windows mouse input.
 It attaches to a visible game window, including a browser showing Minesweeper.
 It uses the existing Minesweeper planner and optional System One model service.
 The model server does not capture the screen or control the mouse.
 
 The first implementation is a calibrated, profile-based player. It is not yet
-an automatically universal recognizer. See the [test report](../../docs/minesweeper-validation.md)
-for what was actually tested and the remaining validation gaps.
+an automatically universal recognizer. See the
+[measured live runs](../../docs/model-performance.md#live-minesweeper-follow-up)
+for tested performance; appearance and rule limitations are described below.
 
 ## First setup
 
 1. On a fresh checkout, run the root `setup.bat` for server dependencies and the model.
 2. Run `addons/minesweeper/setup-desktop.bat` for the optional CPU vision packages.
 3. Start the model with `addons/minesweeper/start-server.bat` if you want System One decisions.
-4. Open the game yourself, then run `addons/minesweeper/play-desktop.bat`.
+4. Open the game yourself, then run `addons/minesweeper/play-minesweeper.bat`
+   and select **Screen pixels**. `play-desktop.bat` opens the same inspector
+   with that adapter selected.
 
 Windows 10/11 and Python 3.12 are required. Desktop mode needs no Playwright,
-browser extension, URL, or Codex plugin. The separate `play-minesweeper.bat`
-continues to launch the existing DOM/Playwright player.
+browser extension, URL, or Codex plugin. To install both adapters together, use
+`setup-minesweeper.bat` instead of `setup-desktop.bat`. **Browser labels** in the
+same inspector uses Playwright and installed Chrome for supported webpages.
+
+The dark inspector shows the captured board alongside its recognized cells,
+decision source, and verified move result. On narrow windows the panels stack.
+Switching adapters clears calibration and trusted flags, and cancels pending
+input. A pending worker must finish before the switch is allowed.
 
 `start-server.bat` defaults to one accelerated int8 worker, suitable for this
 sequential game and the RTX 3070 memory budget. Override with `-Workers N`

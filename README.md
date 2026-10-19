@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="systemx-logo.png" alt="SystemX" width="560">
+  <img src="systemx-logo-readme.png" alt="SystemX" width="560">
 </p>
 
 <h1 align="center">Local intelligence for bounded decisions</h1>
@@ -134,12 +134,23 @@ feasible choices, and execute decisions through their own controllers.
 
 | Integration | Input and behavior | Get started |
 | --- | --- | --- |
-| Browser Minesweeper | Reads visible cell labels and plays through Chrome with Playwright | [Browser player](addons/minesweeper/README.md) |
-| Desktop Minesweeper | Reads captured pixels with OpenCV and controls a selected Windows game window | [Desktop player](addons/minesweeper/DESKTOP.md) |
+| Minesweeper | One inspector and solver with browser-label and OpenCV screen-pixel adapters for classic rectangular boards | [Unified player](addons/minesweeper/README.md) / [Visual calibration](addons/minesweeper/DESKTOP.md) |
 | Chrono Divide / Red Alert 2 | Interprets the visible game window and coordinates production, scouting, and combat through guarded mouse and keyboard actions | [Chrono Divide player](addons/chronodivide/README.md) |
 
 Each addon has its own setup and launcher. **Starting the model server alone does
 not start a game**.
+
+Both game inspectors share a dark interface with an annotated observation preview,
+a status banner, and a scrollable state panel. Wide windows show the preview and
+inspector side by side; narrow windows stack them. Minesweeper shows its recognized
+board, decision source, and verified move results. RA2 shows production, tracked
+objects, persistent intent, and controller events. Capture and recognition problems
+remain visible before input can continue.
+
+Run `addons/minesweeper/play-minesweeper.bat` to select **Screen pixels** for a
+desktop or browser game, or **Browser labels** for a supported webpage. New visual
+themes require calibration or taught samples; nonstandard Minesweeper rules need
+additional support.
 
 Demo videos and GIFs use Git LFS. With Git LFS installed, run `git lfs install`
 and `git lfs pull` in an existing checkout to download them. PNG images stay in regular Git.

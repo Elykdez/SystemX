@@ -18,7 +18,7 @@ screen them and attack-move only toward close threats. An advance requires repea
 views. Missing type identity or escort cover prevents a siege advance. These pixel distances
 are conservative estimates at the calibrated canvas size, not measurements of weapon range.
 Native unit-type groups and live Soviet and Allied wins against Easy Enemy
-are recorded in the [validation report](../../docs/chronodivide-validation.md).
+were verified during development, before the inspector redesign.
 
 If cash and production stall for 90 seconds with a fresh large army at home, System One can
 consider that force instead of waiting indefinitely for a still larger first wave.
@@ -65,6 +65,23 @@ holds it stopped until F8 / Act. Capture failures invalidate the previous playin
 input resumes only after a fresh valid capture.
 
 Headless read-only checks: `python -m addons.chronodivide watch --seconds 30`.
+
+### Live inspector
+
+The controller shares its dark layout with the Minesweeper inspector: an annotated
+game preview, a prominent status banner, and a scrollable state panel. Resize it
+for a side-by-side preview and inspector; narrower windows stack the panels.
+The preview fits the available space without changing game calibration or input
+coordinates.
+
+The state panel reports observed resources, production lanes, tracked objects,
+army activity, persistent intent, System One information, and recent events.
+Capture failures or unrecognized HUD anchors appear as explicit warnings. The
+game window does not need to be maximized: the complete calibrated game view
+must be visible and unobscured. Keep the inspector beside the game while playing.
+
+**Start**, **Act**, **Pause agent**, the Watch/Recommend/Execute modes, and F8/F10
+retain their existing behavior. Pausing the agent does not pause the match.
 
 ### Setup: window, view, and what is recognized
 
@@ -180,8 +197,7 @@ skills; StartLux selects among the choices. The profiles supply:
   is offered and whose fact classes hold). Attack size options carry their number of tanks.
 - `facts`: the words of every fact System One reads, by class (for example `money` is
   `pile_up` from 5000 credits: "credits pile up unused"). Option words must use the same
-  words as the facts. The current StartLux checks and live results are recorded in
-  the [validation report](../../docs/chronodivide-validation.md); changed wording needs new checks.
+  words as the facts. Changed wording needs new model and gameplay checks.
 - `playbook`: the build order and its gates, unit counts and ratios, army strength,
   attack waves, battle sessions, defense and scouting numbers, each with the live-game
   evidence behind it.
@@ -281,8 +297,8 @@ When field dots are missing, inspect the attack target before falling back to
 the team's center. Loss verification inspects the battle location or known
 enemy base: a team split between home and the front can center on empty ground.
 
-The [validation report](../../docs/chronodivide-validation.md) records the current
-StartLux wins for both factions, their settings, retained evidence and debugging limits.
+Live StartLux wins for both factions predate the inspector redesign; they do not
+constitute a fresh live verification of the redesigned UI.
 
 ### Multiple Opponents And Allies
 
